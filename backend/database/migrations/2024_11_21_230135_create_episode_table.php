@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('episode', function (Blueprint $table) {
             $table->id('episode_id');
             $table->unsignedBigInteger('season_id');
-            $table->foreign('season_id')->references('season_id')->on('season')->onDelete('cascade');
+            $table->foreign('season_id')->references('season_id')->on('seasons')->onDelete('cascade');
             $table->integer('episode_number');
             $table->string('title');
-            $table->string('quality');
-            $table->time('duration'); //time or int, which better?
+            $table->json('quality'); // because have multiple quality
+            $table->timestamp('duration');
             $table->json('available_languages');
             $table->date('release_date');
             $table->json('viewing_classification');

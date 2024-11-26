@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('watchhistory', function (Blueprint $table) {
             $table->id('history_id');
             $table->unsignedBigInteger('profile_id');
-            $table->foreign('profile_id')->references('profile_id')->on('profile')->onDelete('cascade');
+            $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('cascade');
             $table->unsignedBigInteger('episode_id')->nullable();
             $table->foreign('episode_id')->references('episode_id')->on('episode')->onDelete('cascade');
             $table->unsignedBigInteger('movie_id')->nullable();
-            $table->foreign('movie_id')->references('movie_id')->on('movie')->onDelete('cascade');
-            $table->time('resume_to'); // save which time?
-            $table->integer('times_watched'); // can remove to calculate method?
-            $table->dateTime('time_stamp'); // save which time?
-            $table->string('viewing_status', length: 10); // string or enum, which better?
+            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('cascade');
+            $table->timestamp('resume_to'); // save quit time
+            $table->integer('times_watched');
+            $table->dateTime('watched_time_stamp'); // save when you watched
+            $table->enum('viewing_status', ['paused', 'finished']);
         });
     }
 

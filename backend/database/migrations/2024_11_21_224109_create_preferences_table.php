@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('preference', function (Blueprint $table) {
             $table->id('preference_id');
             $table->unsignedBigInteger('profile_id');
-            $table->foreign('profile_id')->references('profile_id')->on('profile')->onDelete('cascade');
-            $table->json('content_type');
-            $table->string('genre');
+            $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('cascade');
+            $table->json('content_type'); // save available viewing classification
+            $table->json('genre'); // several genres, json is good? if json good, need default value like genre:[]?
             $table->integer('minimum_age');
         });
     }

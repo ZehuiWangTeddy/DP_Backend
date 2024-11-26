@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subtitle', function (Blueprint $table) {
+        Schema::create('subtitles', function (Blueprint $table) {
             $table->id('subtitle_id');
             $table->unsignedBigInteger('episode_id')->nullable();
             $table->foreign('episode_id')->references('episode_id')->on('episode')->onDelete('cascade');
             $table->unsignedBigInteger('movie_id')->nullable();
-            $table->foreign('movie_id')->references('movie_id')->on('movie')->onDelete('cascade');
-            $table->string('subtitle_path');
-            $table->string('language');
+            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('cascade');
+            $table->string('subtitle_path', length: 255);
+            $table->string('language', length: 20);
         });
     }
 

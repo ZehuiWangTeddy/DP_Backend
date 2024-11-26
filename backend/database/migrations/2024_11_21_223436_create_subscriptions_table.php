@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscription', function (Blueprint $table) {
+        Schema::create('subscriptions', function (Blueprint $table) {
             $table->id('subscription_id');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('user_id')->on('users');
-            $table->double('subscription_price');
-            $table->string('name', length: 5);
-            $table->string('status', length: 10);
+            $table->double('price') ->comment("price IN ('7.99', '10.99', '13.99')");
+            $table->string('name', length: 5)->comment("name IN ('SD', 'HD', 'UHD')");
+            $table->enum('status', ['paid', 'expired']); //paid and expired?
             $table->date('start_date');
             $table->date('end_date');
-            $table->string('payment_method', length: 10);
+            $table->string('payment_method')->comment("payment_method IN ('PayPal', 'Visa', 'MasterCard', 'Apple Pay', 'Google Pay', 'iDEAL')");//use enum amd add validation
         });
     }
 

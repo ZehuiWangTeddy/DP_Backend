@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('movie', function (Blueprint $table) {
+        Schema::create('movies', function (Blueprint $table) {
             $table->id('movie_id');
             $table->string('title', length: 100);
-            $table->time('duration'); //time or int, which better?
+            $table->timestamp('duration');
             $table->date('release_date');
-            $table->string('quality');
+            $table->json('quality'); // because have multiple quality
             $table->integer('age_restriction');
-            $table->string('genre', length: 100);
+            $table->json('genre');
             $table->json('viewing_classification'); //array list
             $table->json('available_languages');
         });
