@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('user_id')->on('users');
             $table->string('name', length: 100);
-            $table->string('photo_path', length: 255);
+            $table->string('photo_path', length: 255)->nullable();
             $table->boolean('child_profile')->default(false);
             $table->date('date_of_birth');
             $table->string('language', length: 20);

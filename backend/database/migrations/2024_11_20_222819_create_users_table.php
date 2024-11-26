@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('sent_referral_code', length: 10); // generate when create account
             $table->string('received_referral_code', length: 10)->nullable();
             $table->boolean('has_discount')->default(false);
-            $table->dateTime('locked_until', precision: 0)->default(null); // locked 10 minutes, try again later
+            $table->dateTime('locked_until', precision: 0)->nullable()->default(null); // locked 10 minutes, try again later
             $table->boolean('trial_available')->default(true); //set default value
             $table->boolean('user_role')->default('1'); // 0 is admin, 1 is normal user
         });

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('age_restriction');
             $table->date('release_date');
             $table->string('genre', length: 100);
-            $table->json('viewing_classification'); //array list
+            $table->json('viewing_classification')->default(json_encode([])); //array list
         });
     }
 
