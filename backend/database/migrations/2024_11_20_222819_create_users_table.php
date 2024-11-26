@@ -17,13 +17,13 @@ return new class extends Migration
             $table->string('password', length: 100);
             $table->string('name', length: 100);
             $table->string('address', length: 100);
-            $table->integer('failed_login_attempts');
-            $table->boolean('active'); //need default?
+            $table->integer('failed_login_attempts')->default(0);
+            $table->boolean('active')->default(true); //set default value
             $table->string('sent_referral_code', length: 10); // generate when create account
             $table->string('received_referral_code', length: 10)->nullable();
-            $table->boolean('has_discount');
-            $table->dateTime('locked_until', precision: 0)->default(null);
-            $table->boolean('trial_available'); //need default?
+            $table->boolean('has_discount')->default(false);
+            $table->dateTime('locked_until', precision: 0)->default(null); // locked 10 minutes, try again later
+            $table->boolean('trial_available')->default(true); //set default value
             $table->boolean('user_role')->default('1'); // 0 is admin, 1 is normal user
         });
     }
