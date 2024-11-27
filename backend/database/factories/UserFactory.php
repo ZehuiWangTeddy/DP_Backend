@@ -12,9 +12,9 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
+     * Store a default hashed password for reuse.
      */
-    protected static ?string $password;
+    protected static ?string $password = null;
 
     /**
      * Define the model's default state.
@@ -26,9 +26,16 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password' => static::$password ??= Hash::make('password'), // Default hashed password
+            'address' => fake()->address(),
+            'failed_login_attempts' => fake()->numberBetween(0, 5),
+            'active' => fake()->boolean(),
+            'sent_referral_code' => fake()->uuid(),
+            'received_referral_code' => fake()->optional()->uuid(),
+            'has_discount' => fake()->boolean(),
+            'locked_until' => fake()->optional()->dateTime(),
+            'trial_available' => fake()->boolean(),
+            'role' => fake()->boolean(), // Assuming binary role (admin/user)
         ];
     }
 

@@ -13,12 +13,23 @@ class SubscriptionFactory extends Factory
     {
         return [
             'user_id' => \App\Models\User::factory(), // Relates to User
-            'price' => $this->faker->randomFloat(2, 5.99, 15.99),
+            'price' => $this->faker->randomFloat(7.99, 10.99, 13.99),
             'name' => $this->faker->randomElement(['SD', 'HD', 'UHD']),
             'status' => $this->faker->randomElement(['paid', 'expired']),
             'start_date' => $this->faker->date(),
             'end_date' => $this->faker->date(),
-            'payment_method' => $this->faker->randomElement(['PayPal', 'Visa', 'MasterCard']),
+            'payment_method' => $this->faker->randomElement([
+                'PayPal',
+                'Visa',
+                'MasterCard',
+                'American Express',
+                'Discover',
+                'Apple Pay',
+                'Google Pay',
+                'Bitcoin',
+                'Ethereum',
+                'Bank Transfer',
+            ]),
         ];
     }
 }

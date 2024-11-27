@@ -13,9 +13,34 @@ class PreferenceFactory extends Factory
     {
         return [
             'profile_id' => \App\Models\Profile::factory(), // Relates to Profile
-            'content_type' => json_encode($this->faker->randomElements(['movie', 'series'], 2)),
-            'genre' => json_encode($this->faker->randomElements(['action', 'comedy', 'drama'], 3)),
-            'minimum_age' => $this->faker->numberBetween(0, 18),
+            'content_type' => $this->faker->randomElement([
+                '18+',
+                'For Kids',
+                'Includes Violence',
+                'Includes Sex',
+                'Family Friendly',
+                'Educational',
+                'Sci-Fi Themes',
+                'Fantasy Elements',
+            ]), // Types of content
+            'genre' => $this->faker->randomElement([
+                'Action',
+                'Comedy',
+                'Drama',
+                'Horror',
+                'Thriller',
+                'Fantasy',
+                'Science Fiction',
+                'Romance',
+                'Documentary',
+                'Animation',
+                'Crime',
+                'Mystery',
+                'Adventure',
+                'Western',
+                'Biographical',
+            ]), // Broader range of genres
+            'minimum_age' => $this->faker->randomElement([0, 6, 9, 12, 16, 18]),
         ];
     }
 }
