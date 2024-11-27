@@ -35,7 +35,7 @@ class UserFactory extends Factory
             'has_discount' => fake()->boolean(),
             'locked_until' => fake()->optional()->dateTime(),
             'trial_available' => fake()->boolean(),
-            'role' => fake()->boolean(), // Assuming binary role (admin/user)
+            'user_role' => fake()->boolean(), // Assuming binary role (admin/user)
         ];
     }
 
