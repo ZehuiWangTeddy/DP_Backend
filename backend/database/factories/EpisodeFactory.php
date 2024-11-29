@@ -17,8 +17,8 @@ class EpisodeFactory extends Factory
 
         return [
             'season_id' => \App\Models\Season::factory(), // Relates to Season
-            'episode_number' => $this->faker->unique()->numberBetween(1, 20), // Unique episode number within a season
-            'title' => $this->faker->sentence(3), 
+            'episode_number' => $this->faker->numberBetween(1, 20), // Unique episode number within a season
+            'title' => $this->faker->sentence(6), 
             'duration' => $this->faker->time('H:i:s'), 
             'release_date' => $this->faker->date(), 
             'quality' => $this->faker->randomElement(['SD', 'HD', 'UHD']), 

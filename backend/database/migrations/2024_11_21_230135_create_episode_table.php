@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('episode', function (Blueprint $table) {
+        Schema::create('episodes', function (Blueprint $table) {
             $table->id('episode_id');
             $table->unsignedBigInteger('season_id')->nullable(); // if delete season still keep episode data
             $table->foreign('season_id')->references('season_id')->on('seasons')->onDelete('set null');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('episode');
+        Schema::dropIfExists('episodes');
     }
 };

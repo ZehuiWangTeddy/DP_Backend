@@ -16,7 +16,7 @@ class SeriesFactory extends Factory
         $age = $this->faker->randomElement([0, 6, 9, 12, 16, 18]);
 
         return [
-            'title' => $this->faker->sentence(), // Random series title
+            'title' => $this->faker->sentence(6), // Random series title
             'age_restriction' => $age, // Age restriction for the series
             'release_date' => $this->faker->date(), // Series release date
             'genre' => $this->faker->randomElement([

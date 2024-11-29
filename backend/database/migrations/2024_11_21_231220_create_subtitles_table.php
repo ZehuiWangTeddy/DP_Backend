@@ -13,12 +13,14 @@ return new class extends Migration
     {
         Schema::create('subtitles', function (Blueprint $table) {
             $table->id('subtitle_id');
-            $table->unsignedBigInteger('episode_id')->nullable(); // if delete episode then delete subtitle
-            $table->foreign('episode_id')->references('episode_id')->on('episode')->onDelete('cascade');
-            $table->unsignedBigInteger('movie_id')->nullable(); // if delete movie then delete subtitle
-            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('cascade');
-            $table->string('subtitle_path', length: 255);
-            $table->string('language', length: 20);
+            $table->unsignedBigInteger('episode_id')->nullable(); // Foreign key to episodes table
+            $table->foreign('episode_id')->references('episode_id')->on('episodes')->onDelete('cascade'); // Ensure table name is 'episodes'
+
+            $table->unsignedBigInteger('movie_id')->nullable(); // Foreign key to movies table
+            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('cascade'); // Ensure table name is 'movies'
+
+            $table->string('subtitle_path', 255); // Path to subtitle file
+            $table->string('language', 20); // Language of subtitle
         });
     }
 
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subtitle');
+        Schema::dropIfExists('subtitles'); // Correct table name here as 'subtitles'
     }
 };
