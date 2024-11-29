@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('watchlist', function (Blueprint $table) {
+        Schema::create('watchlists', function (Blueprint $table) {
             $table->id('watchlist_id'); // Primary Key
             
             // Foreign key to profiles
@@ -20,13 +20,17 @@ return new class extends Migration
 
             // Foreign key to episodes
             $table->unsignedBigInteger('episode_id')->nullable();
-            $table->foreign('episode_id')->references('episode_id')->on('episodes')->onDelete('set null');
+            $table->foreign('episode_id')->references('episode_id')->on('episodes')->onDelete('cascade');
 
             // Foreign key to movies
             $table->unsignedBigInteger('movie_id')->nullable();
-            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('set null');
+            $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('cascade');
 
-            $table->enum('viewing_status', ['to_watch', 'paused', 'finished']);
+            // Enum for viewing status
+            $table->enum('viewing_status', ['to_watch', 'paused', 'finished'])->default('to_watch');
+
+            // Add timestamps
+            $table->timestamps();
         });
     }
 
@@ -35,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('watchlist');
+        Schema::dropIfExists('watchlists');
     }
 };
