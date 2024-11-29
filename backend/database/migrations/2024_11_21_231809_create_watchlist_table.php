@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('watchlist', function (Blueprint $table) {
-            $table->id('watchlist_id');
+            $table->id('watchlist_id'); // Primary Key
             
             // Foreign key to profiles
-            $table->unsignedBigInteger('profile_id')->nullable(); 
+            $table->unsignedBigInteger('profile_id')->nullable();
             $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('set null');
 
             // Foreign key to episodes
@@ -26,7 +26,6 @@ return new class extends Migration
             $table->unsignedBigInteger('movie_id')->nullable();
             $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('set null');
 
-            // Viewing status
             $table->enum('viewing_status', ['to_watch', 'paused', 'finished']);
         });
     }

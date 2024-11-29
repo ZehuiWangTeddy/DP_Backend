@@ -11,18 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('watchhistory', function (Blueprint $table) {
-            $table->id('history_id');
-            $table->unsignedBigInteger('profile_id')->nullable(); // if delete profile still keep watch history data
+        Schema::create('watchhistories', function (Blueprint $table) {
+            $table->id('history_id'); // Primary Key
+            
+            // Foreign key to profiles
+            $table->unsignedBigInteger('profile_id')->nullable();
             $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('set null');
+            
+            // Foreign key to episodes
             $table->unsignedBigInteger('episode_id')->nullable();
-            $table->foreign('episode_id')->references('episode_id')->on('episode')->onDelete('set null');
+            $table->foreign('episode_id')->references('episode_id')->on('episodes')->onDelete('set null');
+            
+            // Foreign key to movies
             $table->unsignedBigInteger('movie_id')->nullable();
             $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('set null');
-            $table->timestamp('resume_to'); // save quit time
-            $table->integer('times_watched');
-            $table->dateTime('watched_time_stamp'); // save when you watched
-            $table->enum('viewing_status', ['paused', 'finished']);
+            
+            // Additional fields
+            $table->timestamp('resume_to')->nullable(); // Save quit time
+            $table->integer('times_watched')->default(0); // Default times watched to 0
+            $table->dateTime('watched_time_stamp')->nullable(); // Save when you watched
+            $table->enum('viewing_status', ['paused', 'finished'])->default('paused'); // Default viewing status
         });
     }
 
@@ -31,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('watchhistory');
+        Schema::dropIfExists('watchhistories');
     }
 };
