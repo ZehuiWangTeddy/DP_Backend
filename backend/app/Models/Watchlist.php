@@ -9,6 +9,12 @@ class Watchlist extends Model
 {
     use HasFactory;
 
+    protected $table = 'watchlists'; // Explicitly define the table name
+
+    protected $primaryKey = 'watchlist_id'; // Define custom primary key
+
+    public $timestamps = true; // Enable timestamps for created_at and updated_at
+
     protected $fillable = [
         'profile_id',
         'episode_id',
@@ -16,16 +22,25 @@ class Watchlist extends Model
         'viewing_status',
     ];
 
+    /**
+     * Relationship to Profile.
+     */
     public function profile()
     {
         return $this->belongsTo(Profile::class, 'profile_id', 'profile_id');
     }
 
+    /**
+     * Relationship to Episode.
+     */
     public function episode()
     {
         return $this->belongsTo(Episode::class, 'episode_id', 'episode_id');
     }
 
+    /**
+     * Relationship to Movie.
+     */
     public function movie()
     {
         return $this->belongsTo(Movie::class, 'movie_id', 'movie_id');

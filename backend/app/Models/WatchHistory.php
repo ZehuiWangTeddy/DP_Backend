@@ -9,6 +9,8 @@ class WatchHistory extends Model
 {
     use HasFactory;
 
+    protected $table = 'watchhistories';
+
     protected $fillable = [
         'profile_id',
         'episode_id',
@@ -18,6 +20,8 @@ class WatchHistory extends Model
         'watched_time_stamp',
         'viewing_status',
     ];
+
+    public $timestamps = false; // Disable timestamps if not needed
 
     public function profile()
     {

@@ -6,13 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('watchhistories', function (Blueprint $table) {
-            $table->id('history_id'); // Primary Key
+            $table->id('history_id'); // Primary key
             
             // Foreign key to profiles
             $table->unsignedBigInteger('profile_id')->nullable();
@@ -26,19 +23,15 @@ return new class extends Migration
             $table->unsignedBigInteger('movie_id')->nullable();
             $table->foreign('movie_id')->references('movie_id')->on('movies')->onDelete('set null');
             
-            // Additional fields
-            $table->timestamp('resume_to')->nullable(); // Save quit time
-            $table->integer('times_watched')->default(0); // Default times watched to 0
-            $table->dateTime('watched_time_stamp')->nullable(); // Save when you watched
-            $table->enum('viewing_status', ['paused', 'finished'])->default('paused'); // Default viewing status
+            $table->time('resume_to'); // Save quit time
+            $table->integer('times_watched'); // Times watched
+            $table->dateTime('watched_time_stamp'); // When watched
+            $table->enum('viewing_status', ['paused', 'finished']); // Status
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('watchhistories');
+        Schema::dropIfExists('watchhistory');
     }
 };
