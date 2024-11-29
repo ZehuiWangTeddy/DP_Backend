@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('address', 255)->nullable();
             $table->integer('failed_login_attempts')->default(0);
             $table->boolean('active')->default(true);
-            $table->string('sent_referral_code', 10)->nullable(); // Nullable for flexibility
+            $table->string('sent_referral_code', 10); // Nullable for flexibility
             $table->string('received_referral_code', 10)->nullable();
             $table->boolean('has_discount')->default(false);
             $table->dateTime('locked_until')->nullable(); // Default is unnecessary for nullable

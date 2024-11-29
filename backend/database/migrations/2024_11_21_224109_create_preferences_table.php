@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('preference', function (Blueprint $table) {
-            $table->id('preference_id');
-            $table->unsignedBigInteger('profile_id');
-            $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('cascade');
-            $table->json('content_type'); // save available viewing classification
-            $table->json('genre')->default(json_encode([])); // several genres, json is good? if json good, need default value like genre:[]?
-            $table->integer('minimum_age');
+        Schema::create('preferences', function (Blueprint $table) {
+            $table->id('preference_id'); // Primary key
+            $table->unsignedBigInteger('profile_id'); // Foreign key
+            $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('cascade'); // Cascade on delete
+            $table->string('content_type', 255); // Content type
+            $table->json('genre')->default(json_encode([])); // Genre as JSON
+            $table->integer('minimum_age')->default(0); // Minimum age restriction
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('preference');
+        Schema::dropIfExists('preferences');
     }
 };

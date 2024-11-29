@@ -23,7 +23,7 @@ class PreferenceFactory extends Factory
                 'Sci-Fi Themes',
                 'Fantasy Elements',
             ]), // Types of content
-            'genre' => $this->faker->randomElement([
+            'genre' => json_encode($this->faker->randomElements([
                 'Action',
                 'Comedy',
                 'Drama',
@@ -39,7 +39,7 @@ class PreferenceFactory extends Factory
                 'Adventure',
                 'Western',
                 'Biographical',
-            ]), // Broader range of genres
+            ], $this->faker->numberBetween(1, 3))), // JSON array for multiple genres
             'minimum_age' => $this->faker->randomElement([0, 6, 9, 12, 16, 18]),
         ];
     }
