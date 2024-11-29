@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('episode', function (Blueprint $table) {
             $table->id('episode_id');
-            $table->unsignedBigInteger('season_id');
-            $table->foreign('season_id')->references('season_id')->on('seasons')->onDelete('cascade');
+            $table->unsignedBigInteger('season_id')->nullable(); // if delete season still keep episode data
+            $table->foreign('season_id')->references('season_id')->on('seasons')->onDelete('set null');
             $table->integer('episode_number');
             $table->string('title');
             $table->json('quality'); // because have multiple quality

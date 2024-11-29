@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('profiles', function (Blueprint $table) {
             $table->id('profile_id');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('user_id')->on('users');
+            $table->unsignedBigInteger('user_id')->nullable(); // if delete user still keep profile data
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('set null');
             $table->string('name', length: 100);
             $table->string('photo_path', length: 255)->nullable();
             $table->boolean('child_profile')->default(false);
