@@ -19,23 +19,34 @@ class MovieFactory extends Factory
             'title' => $this->faker->sentence(3), // Generates a random movie title
             'duration' => $this->faker->time('H:i:s'), // Movie duration in H:i:s format
             'release_date' => $this->faker->date(), // Movie release date
-            'quality' => $this->faker->randomElement(['SD', 'HD', 'UHD']), // Movie quality
+            'quality' => json_encode($this->faker->randomElements(
+                ['SD', 'HD', 'UHD'],
+                $this->faker->numberBetween(1, 3) // Choose between 1 and 3 qualities
+            )),
             'age_restriction' => $age, // Age restriction for the movie
-            'genre' => $this->faker->randomElement([
-                'Action',
-                'Comedy',
-                'Drama',
-                'Horror',
-                'Thriller',
-                'Fantasy',
-                'Science Fiction',
-                'Romance',
-                'Documentary',
-                'Animation',
-                'Crime',
-                'Adventure',
-            ]), // Movie genre
-            'viewing_classification' => ViewingClassificationHelper::determineViewingClassification($age), // Viewing classification based on age
+            'genre' => json_encode($this->faker->randomElements(
+                [
+                    'Action',
+                    'Comedy',
+                    'Drama',
+                    'Horror',
+                    'Thriller',
+                    'Fantasy',
+                    'Science Fiction',
+                    'Romance',
+                    'Documentary',
+                    'Animation',
+                    'Crime',
+                    'Mystery',
+                    'Adventure',
+                    'Western',
+                    'Biographical',
+                ],
+                $this->faker->numberBetween(1, 3) // Select 1 to 3 genres
+            )),
+            'viewing_classification' => json_encode([
+                ViewingClassificationHelper::determineViewingClassification($age)
+            ]), // Viewing classification based on age
             'available_languages' => json_encode($this->faker->randomElements(
                 ['English', 'Spanish', 'French', 'German', 'Italian', 'Chinese', 'Japanese'],
                 $this->faker->numberBetween(2, 4)

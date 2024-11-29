@@ -9,6 +9,21 @@ class Episode extends Model
 {
     use HasFactory;
 
+
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+     /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'episode_id';
+
     protected $fillable = [
         'season_id',
         'episode_number',
