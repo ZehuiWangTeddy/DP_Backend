@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('series', function (Blueprint $table) {
             $table->id('series_id');
-            $table->string('title', length: 100);
+            $table->string('title', 255);
             $table->integer('age_restriction');
             $table->date('release_date');
-            $table->string('genre', length: 100);
-            $table->json('viewing_classification'); //array list
-        });
+            $table->string('genre', 255);
+            $table->string('viewing_classification', 20); // Classification from ViewingClassificationHelper
+        });        
     }
 
     /**

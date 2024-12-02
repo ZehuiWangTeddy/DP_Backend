@@ -13,18 +13,19 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id('user_id');
-            $table->string('email', length: 100)->unique();
-            $table->string('password', length: 100);
-            $table->string('name', length: 100);
-            $table->string('address', length: 100);
+            $table->string('email', 100)->unique();
+            $table->string('password', 100);
+            $table->string('name', 100);
+            $table->string('address', 255)->nullable();
             $table->integer('failed_login_attempts')->default(0);
-            $table->boolean('active')->default(true); //set default value
-            $table->string('sent_referral_code', length: 10); // generate when create account
-            $table->string('received_referral_code', length: 10)->nullable();
+            $table->boolean('active')->default(true);
+            $table->string('sent_referral_code', 10); // Nullable for flexibility
+            $table->string('received_referral_code', 10)->nullable();
             $table->boolean('has_discount')->default(false);
-            $table->dateTime('locked_until', precision: 0)->default(null); // locked 10 minutes, try again later
-            $table->boolean('trial_available')->default(true); //set default value
-            $table->boolean('user_role')->default('1'); // 0 is admin, 1 is normal user
+            $table->dateTime('locked_until')->nullable(); // Default is unnecessary for nullable
+            $table->boolean('trial_available')->default(true);
+            $table->tinyInteger('user_role')->default(1); // 0 is admin, 1 is normal user
+            $table->timestamps(); // Adds created_at and updated_at columns
         });
     }
 

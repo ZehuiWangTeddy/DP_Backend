@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('episode', function (Blueprint $table) {
-            $table->id('episode_id');
-            $table->unsignedBigInteger('season_id');
+        Schema::create('episodes', function (Blueprint $table) {
+            $table->id('episode_id'); // Primary Key
+            $table->unsignedBigInteger('season_id'); // Foreign key to seasons
             $table->foreign('season_id')->references('season_id')->on('seasons')->onDelete('cascade');
             $table->integer('episode_number');
-            $table->string('title');
-            $table->json('quality'); // because have multiple quality
-            $table->timestamp('duration');
-            $table->json('available_languages');
+            $table->string('title', 255);
+            $table->time('duration');
             $table->date('release_date');
-            $table->json('viewing_classification');
+            $table->enum('quality', ['SD', 'HD', 'UHD']);
+            $table->json('available_languages')->default(json_encode(['English']));
+            $table->string('viewing_classification'); // For age restrictions (e.g., 12+)
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('episode');
+        Schema::dropIfExists('episodes');
     }
 };

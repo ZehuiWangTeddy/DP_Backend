@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('seasons', function (Blueprint $table) {
             $table->id('season_id');
-            $table->unsignedBigInteger('series_id');
-            $table->foreign('series_id')->references('series_id')->on('series')->onDelete('cascade');
+            $table->unsignedBigInteger('series_id')->nullable(); // if delete series still keep season data
+            $table->foreign('series_id')->references('series_id')->on('series')->onDelete('set null');
             $table->integer('season_number');
             $table->date('release_date');
         });
