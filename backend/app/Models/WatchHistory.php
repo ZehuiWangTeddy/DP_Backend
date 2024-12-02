@@ -9,6 +9,20 @@ class WatchHistory extends Model
 {
     use HasFactory;
 
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'history_id';
+
     protected $table = 'watchhistories';
 
     protected $fillable = [
@@ -21,7 +35,6 @@ class WatchHistory extends Model
         'viewing_status',
     ];
 
-    public $timestamps = false; // Disable timestamps if not needed
 
     public function profile()
     {
