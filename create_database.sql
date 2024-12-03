@@ -23,7 +23,7 @@ CREATE ROLE admin_role WITH
   CREATEDB             -- This role can create databases.
   NOCREATEROLE         -- This role cannot create other roles.
   NOREPLICATION        -- This role does not have replication privileges.
-  NOBYPASSRLS          -- This role cannot bypass Row-Level Security (RLS).
+  NOBYPASSRLS;         -- This role cannot bypass Row-Level Security (RLS).
 
 -- Step 3
 GRANT admin_role TO laravel;  -- Grants the 'admin_role' to 'laravel', allowing 'laravel' to inherit all privileges of 'admin_role'.
