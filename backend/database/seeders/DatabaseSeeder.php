@@ -13,6 +13,7 @@ use App\Models\Episode;
 use App\Models\Movie;
 use App\Models\Watchlist;
 use App\Models\WatchHistory;
+use App\Models\Subtitle;
 
 class DatabaseSeeder extends Seeder
 {
@@ -50,6 +51,9 @@ class DatabaseSeeder extends Seeder
 
         // Seed the watch history table
         WatchHistory::factory(40)->create();
+
+        // Seed the subtitles table
+        Subtitle::factory(50)->create(); // Adding Subtitle seeding
 
         // Add a specific user
         User::factory()->create([
