@@ -9,12 +9,9 @@ class Watchlist extends Model
 {
     use HasFactory;
 
-    protected $table = 'watchlists'; // Explicitly define the table name
-
-    protected $primaryKey = 'watchlist_id'; // Define custom primary key
-
-    public $timestamps = true; // Enable timestamps for created_at and updated_at
-
+    public $timestamps = true; // Explicitly define the table name
+protected $table = 'watchlists'; // Define custom primary key
+protected $primaryKey = 'watchlist_id'; // Enable timestamps for created_at and updated_at
     protected $fillable = [
         'profile_id',
         'episode_id',

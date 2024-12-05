@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -15,7 +14,7 @@ return new class extends Migration
             $table->id('subscription_id');
             $table->unsignedBigInteger('user_id')->nullable(); //// if delete user still keep subscription data
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('set null');
-            $table->double('price') ->comment("price IN ('7.99', '10.99', '13.99')");
+            $table->double('price')->comment("price IN ('7.99', '10.99', '13.99')");
             $table->string('name', length: 5)->comment("name IN ('SD', 'HD', 'UHD')");
             $table->enum('status', ['paid', 'expired']); //paid and expired?
             $table->date('start_date');

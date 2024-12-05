@@ -16,7 +16,7 @@ class Preference extends Model
      */
     public $timestamps = false;
 
-     /**
+    /**
      * The primary key associated with the table.
      *
      * @var string
