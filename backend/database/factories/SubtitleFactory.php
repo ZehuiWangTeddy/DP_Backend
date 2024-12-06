@@ -16,7 +16,7 @@ class SubtitleFactory extends Factory
     public function definition(): array
     {
         return [
-            'language' => $this->faker->randomElement(['en', 'es', 'fr', 'de', 'it']),
+            'language' => $this->faker->randomElement(['en', 'es', 'fr', 'de', 'it', 'nl']),
             'movie_id' => Movie::inRandomOrder()->first()?->id ?? Movie::factory(),
             'episode_id' => Episode::inRandomOrder()->first()?->id ?? Episode::factory(),
             'subtitle_path' => $this->faker->filePath(),
