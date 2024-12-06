@@ -33,4 +33,5 @@ class Movie extends Model
         'viewing_classification',
         'available_languages',
     ];
+
 }
