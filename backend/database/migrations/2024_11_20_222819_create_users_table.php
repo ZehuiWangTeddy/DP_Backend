@@ -24,7 +24,9 @@ return new class extends Migration {
             $table->dateTime('locked_until')->nullable(); // Default is unnecessary for nullable
             $table->boolean('trial_available')->default(true);
             $table->tinyInteger('user_role')->default(1); // 0 is admin, 1 is normal user
-            $table->timestamps(); // Adds created_at and updated_at columns
+
+            $table->string('password_reset_token', 100)->nullable(); // save password reset token
+            $table->timestamp('password_reset_token_expiry')->nullable(); // save token expired time
         });
     }
 

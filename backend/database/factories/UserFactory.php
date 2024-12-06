@@ -35,6 +35,9 @@ class UserFactory extends Factory
             'locked_until' => fake()->optional()->dateTime(),
             'trial_available' => fake()->boolean(),
             'user_role' => fake()->boolean(), // Assuming binary role (admin/user)
+
+            'password_reset_token' => fake()->optional()->randomElement([Str::random(60), null]), // Random token or null
+            'password_reset_token_expiry' => fake()->optional()->randomElement([now()->addHours(2), null]), // Expiry time or null
         ];
     }
 

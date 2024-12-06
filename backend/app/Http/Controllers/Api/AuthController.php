@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisteRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,96 +14,81 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB; // Add DB facade for transaction handling
 use PHPOpenSourceSaver\JWTAuth\JWTAuth;
 use Exception;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
     protected User $user;
 
     public function __construct(User $user)
     {
-        // Inject User model for database operations
         $this->user = $user;
     }
 
     /**
      * User Registration
      */
-    public function register(Request $request)
+    public function register(RegisteRequest $request)
     {
-        // Validate incoming request
-        $this->validate($request, [
-            'name' => 'required|string|max:100',
-            'email' => 'required|string|email:rfc,dns|max:100|unique:users', // Ensure unique email in users table
-            'password' => 'required|string|min:6|max:100|confirmed',
-            'address' => 'nullable|string|max:255',
-            'received_referral_code' => 'nullable|string|max:10|exists:users,sent_referral_code',
-        ]);
+        $validated = $request->validated();
 
-        // Validate received referral code (if provided)
-        if (!empty($request['received_referral_code'])) {
-            $validReferralCode = User::where('sent_referral_code', $request['received_referral_code'])->exists();
+        if (!empty($validated['received_referral_code'])) {
+            $validReferralCode = DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+            ->table('users_subscriptions_view')
+                ->where('user_referral_code', $validated['received_referral_code'])
+                ->exists();
+
             if (!$validReferralCode) {
-                return response()->json(['message' => 'Invalid referral code'], 400);
+                return $this->errorResponse(400, 'Invalid referral code');
             }
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
-            // Generate a referral code for the new user
             $sentReferralCode = strtoupper(Str::random(10));
-            $hasDiscount = $request->filled('received_referral_code');
+            $hasDiscount = !empty($validated['received_referral_code']);
 
-            // Create the new user record in the database
-            $user = $this->user::create([
-                'name' => $request['name'],
-                'email' => $request['email'],
-                'password' => bcrypt($request['password']),
-                'address' => $request['address'] ?? null,
-                'sent_referral_code' => $sentReferralCode,
-                'user_role' => '1', // Default normal user
-                'has_discount' => $hasDiscount,
-            ]);
+            // Use stored procedure for user creation
+            $userId = DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+            ->selectOne('SELECT create_user_with_profile(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS user_id', [
+                $validated['email'],
+                bcrypt($validated['password']),
+                $validated['name'],
+                $sentReferralCode,
+                $validated['date_of_birth'],
+                $validated['address'] ?? null,
+                $validated['received_referral_code'] ?? null,
+                $hasDiscount,
+                true, // Default user_role
+                1,    // Default user_role
+                'English', // Default language
+                false  // Default child_profile
+            ])->user_id;
 
-            // Commit the transaction after successful user creation
-            DB::commit();
+            $user = DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+            ->table('users_subscriptions_view')
+                ->where('user_id', $userId)
+                ->first();
 
-            // Generate JWT token for the user
+            // Use JWTAuth to create a token
             $token = auth()->login($user);
 
-            // Return the response with token and user data
-            return response()->json([
-                'meta' => [
-                    'code' => 201,
-                    'status' => 'success',
-                    'message' => 'Registration successful',
+            return $this->dataResponse([
+                'user' => [
+                    'user_id' => $user->user_id,
+                    'name' => $user->name,
+                    'email' => $user->email,
                 ],
-                'data' => [
-                    'user' => $user->only(['id', 'name', 'email', 'address', 'user_role']),
-                    'user_referral_code' => $user->sent_referral_code,
-                    'received_referral_code' => $user->received_referral_code,
-                    'has_discount' => $user->has_discount,
-                    'access_token' => [
-                        'token' => $token,
-                        'token_type' => 'bearer',
-                        'expires_in' => auth()->factory()->getTTL() * 60, // Token expiration
-                    ],
+                'access_token' => [
+                    'token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => Auth::factory()->getTTL() * 60,
                 ],
-            ]);
+            ], "Registration successful");
         } catch (Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
-
-            // Return error response in case of failure
-            return response()->json([
-                'meta' => [
-                    'code' => 500,
-                    'status' => 'error',
-                    'message' => 'Registration failed. Please try again later.',
-                ],
-                'data' => [],
-            ]);
+            Log::error($e);
+            return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }
     }
 
@@ -110,61 +97,46 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        // Attempt to authenticate using the provided email and password
-        $token = auth()->attempt($request->only('email', 'password'));
-
-        // If authentication fails, return error response
-        if (!$token) {
-            return response()->json(['message' => 'Invalid email or password'], 400);
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
         }
 
-        // Retrieve authenticated user
-        $user = auth()->user();
+        $user = DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+        ->table('users_subscriptions_view')
+            ->where('email', $request->email)
+            ->first();
 
-        // Check if the user's account is locked
+        if (!$user) {
+            return $this->errorResponse(400, 'Invalid email or password');
+        }
+
         if ($user->locked_until && $user->locked_until > now()) {
-            return response()->json(['message' => 'Account locked. Try again later.'], 400);
+            return $this->errorResponse(400, 'Account locked. Try again later.');
         }
 
-        // Handle failed login attempts
+        // Use Hash to check password and update failed login attempts
         if (!Hash::check($request->password, $user->password)) {
-            $user->increment('failed_login_attempts');
-
-            // If the user failed to log in 4 times, lock the account
-            if ($user->failed_login_attempts >= 4) {
-                $user->update([
-                    'active' => false,
-                    'trial_available' => false,
-                    'locked_until' => now()->addMinutes(10), // Lock account for 10 minutes
-                ]);
-            }
-
-            return response()->json(['message' => 'Invalid email or password'], 400);
+            // Update failed login attempts using a stored procedure or query
+            DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+            ->statement('UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ?', [$user->user_id]);
+            return $this->errorResponse(400, 'Invalid email or password');
         }
 
-        // Reset failed login attempts on successful login
-        $user->update(['failed_login_attempts' => 0]);
+        // Use JWTAuth to create a token
+        $token = auth()->login($user);
 
-        // Return the response with token and user data
-        return response()->json([
-            'meta' => [
-                'code' => 200,
-                'status' => 'success',
-                'message' => 'Login successful',
+        return $this->StanderResponse(200, 'Login successful', [
+            'user' => $user,
+            'access_token' => [
+                'token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
             ],
-            'data' => [
-                'user' => auth()->user(),
-                'access_token' => [
-                    'token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => auth()->factory()->getTTL() * 60,
-                ],
-            ]
         ]);
     }
 
@@ -173,42 +145,13 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        $token = JWTAuth::getToken();
-
-        // If no token is provided, return error response
-        if (!$token) {
-            return response()->json([
-                'meta' => [
-                    'code' => 400,
-                    'status' => 'error',
-                    'message' => 'No Token provided',
-                ],
-                'data' => [],
-            ]);
-        }
-
         try {
-            // Invalidate the token to log the user out
-            JWTAuth::invalidate($token);
+            Auth::logout();
+            Auth::invalidate(true);
 
-            return response()->json([
-                'meta' => [
-                    'code' => 200,
-                    'status' => 'success',
-                    'message' => 'Successfully logged out',
-                ],
-                'data' => [],
-            ]);
+            return $this->messageResponse('Successfully logged out');
         } catch (Exception $e) {
-            // Handle exception if token invalidation fails
-            return response()->json([
-                'meta' => [
-                    'code' => 500,
-                    'status' => 'error',
-                    'message' => 'Failed to logout',
-                ],
-                'data' => [],
-            ]);
+            return $this->errorResponse(500, "Failed to logout");
         }
     }
 
@@ -217,45 +160,27 @@ class AuthController extends Controller
      */
     public function sendResetLinkEmail(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
 
-        // Retrieve user by email
-        $user = User::where('email', $request->email)->first();
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
 
-        // Check if the user's account is active
+        $user = User::where('email', $validator->safe(['email']))->first();
+
         if (!$user || !$user->active) {
-            return response()->json([
-                'meta' => [
-                    'code' => 400,
-                    'status' => 'error',
-                    'message' => 'Account is locked or inactive, password reset link cannot be sent.',
-                ],
-            ]);
+            return $this->errorResponse(400, "Account is locked or inactive, password reset link cannot be sent.");
         }
 
-        // Send password reset link
-        $response = Password::sendResetLink($request->only('email'));
+        $response = Password::sendResetLink($validator->safe(['email']));
 
-        // Return success or failure response
         if ($response == Password::RESET_LINK_SENT) {
-            return response()->json([
-                'meta' => [
-                    'code' => 200,
-                    'status' => 'success',
-                    'message' => 'Password reset link sent successfully.',
-                ],
-            ]);
+            return $this->messageResponse("Password reset link sent successfully.");
         }
 
-        return response()->json([
-            'meta' => [
-                'code' => 400,
-                'status' => 'error',
-                'message' => 'Failed to send password reset link. Please try again.',
-            ],
-        ]);
+        return $this->errorResponse(400, "Failed to send password reset link. Please try again.");
     }
 
     /**
@@ -263,52 +188,47 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        $this->validate($request, [
-            'token' => 'required',
-            'email' => 'required|email',
+        $validator = Validator::make($request->all(), [
             'password' => 'required|confirmed|min:8',
         ]);
 
-        // Retrieve user by email
-        $user = User::where('email', $request->email)->first();
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
 
-        // Check if the user's account is active
+        $user = Auth::user();
+
         if (!$user || !$user->active) {
-            return response()->json([
-                'meta' => [
-                    'code' => 400,
-                    'status' => 'error',
-                    'message' => 'Account is locked or inactive, password reset is not allowed.',
-                ],
-            ]);
+            return $this->errorResponse(400, "Account is locked or inactive. Password reset is not allowed.");
         }
 
-        // Perform password reset
-        $response = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->password = Hash::make($password); // Update password
-                $user->save();
-            }
-        );
+        $newPassword = $validator->safe()['password'];
 
-        // Return success or failure response
-        if ($response == Password::PASSWORD_RESET) {
-            return response()->json([
-                'meta' => [
-                    'code' => 200,
-                    'status' => 'success',
-                    'message' => 'Password reset successfully.',
-                ],
-            ]);
+        if (Hash::check($newPassword, $user->password)) {
+            return $this->errorResponse(400, "New password cannot be the same as the current password.");
         }
 
-        return response()->json([
-            'meta' => [
-                'code' => 400,
-                'status' => 'error',
-                'message' => 'Failed to reset password. Please try again.',
-            ],
-        ]);
+        try {
+            $hashedPassword = bcrypt($newPassword);
+            DB::connection('api_user_pgsql') // 使用 'api_user_pgsql' 连接
+            ->statement('CALL update_user(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $user->user_id,
+                $user->email,
+                $hashedPassword,
+                $user->name,
+                $user->sent_referral_code,
+                $user->address,
+                $user->received_referral_code,
+                $user->has_discount,
+                $user->trial_available,
+                $user->user_role,
+                $user->language,
+            ]);
+
+            return $this->messageResponse("Password reset successfully.");
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->errorResponse(500, "Failed to reset password. Please try again later.");
+        }
     }
 }

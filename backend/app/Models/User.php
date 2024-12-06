@@ -26,14 +26,50 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $primaryKey = 'user_id';
     /**
+     * Override the toArray method to handle custom id mapping.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = parent::toArray();
+
+        \Log::info('User toArray called', ['user_id' => $this->user_id]);
+
+        // Map user_id to id for compatibility
+        $array['id'] = $this->user_id;
+
+        return $array;
+    }
+    /**
+     * Get the name of the primary key for the model.
+     *
+     * @return string
+     */
+    public function getKeyName()
+    {
+        return $this->primaryKey;
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'password',
+        'address',
+        'failed_login_attempts',
+        'active',
+        'sent_referral_code',
+        'received_referral_code',
+        'has_discount',
+        'locked_until',
+        'trial_available',
+        'user_role',
     ];
 
     /**
