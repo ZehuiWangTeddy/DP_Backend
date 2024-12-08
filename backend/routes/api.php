@@ -1,24 +1,38 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('login', function(){
+    return response()->json([
+        'meta' => [
+            'code' => 401,
+            'message' => 'Unauthenticated.',
+        ],
+        'data' => [],
+    ]);
+})->name('login');
 
 Route::prefix('v1')->group(function () {
 
     Route::prefix('auth')->group(function () {
-        Route::post('/register', 'AuthController@register')->name('auth.register');
-        Route::post('/login', 'AuthController@login')->name('auth.login');
-        Route::post('/password-reset', 'AuthController@passwordReset')->name('auth.passwordReset');
-        Route::post('/verification', 'AuthController@verify')->name('auth.verification');
-        Route::post('/invitation', 'AuthController@invite')->name('auth.invitation');
+        Route::post('/register', [AuthController::class, "register"])->name('auth.register');
+        Route::post('/login', [AuthController::class, "login"])->name('auth.login');
+        Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->name('auth.passwordReset')->middleware("auth:api");
+        Route::post('/send-reset-password-email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:60,1');
+        Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout');
+//        Route::post('/verification', 'AuthController@verify')->name('auth.verification');
+//        Route::post('/invitation', 'AuthController@invite')->name('auth.invitation');
     });
 
     Route::middleware('auth:api')->group(function () {
 
         Route::prefix('users')->group(function () {
-            Route::get('/', 'UserController@index')->name('users.index');
-            Route::get('/{id}', 'UserController@show')->name('users.show');
-            Route::put('/{id}', 'UserController@update')->name('users.update');
-            Route::delete('/{id}', 'UserController@destroy')->name('users.destroy');
+            Route::get('/', [UserController::class, "index"])->name('users.index');
+            Route::get('/{id}', [UserController::class, "show"])->name('users.show');
+            Route::put('/{id}', [UserController::class, "update"])->name('users.update');
+            Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
         });
 
         Route::prefix('subscription')->group(function () {

@@ -23,6 +23,12 @@
    DB_DATABASE=netfilex
    DB_USERNAME=laravel
    DB_PASSWORD=laravel
+   
+   SESSION_DRIVER=file
+   SESSION_LIFETIME=120
+   SESSION_ENCRYPT=false
+   SESSION_PATH=/
+   SESSION_DOMAIN=null
    ```
 
 ## **Installing Dependencies**
@@ -63,6 +69,11 @@
    php artisan config:clear
    php artisan cache:clear
    ```
+## **Add API secret**
+1. Add API secret in .env file
+    ```bash
+        php artisan jwt:secret
+    ```
 
 ## **Notes**
 - Ensure PostgreSQL is running locally or on a configured server.
