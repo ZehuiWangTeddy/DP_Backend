@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\SubscriptionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\CheckUserRole;
 
 Route::get('login', function(){
     return response()->json([
@@ -19,16 +21,17 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/register', [AuthController::class, "register"])->name('auth.register');
         Route::post('/login', [AuthController::class, "login"])->name('auth.login');
-        Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->name('auth.passwordReset')->middleware("auth:api");
         Route::post('/send-reset-password-email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:60,1');
-        Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout');
+        Route::post('/reset-password-with-forgot-email', [AuthController::class, 'resetPasswordWithForgotEmail'])->middleware('throttle:60,1')->name('password.reset');
+        Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->middleware("auth:api")->name('password.resetPassword');
+        Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout')->middleware("auth:api");
 //        Route::post('/verification', 'AuthController@verify')->name('auth.verification');
 //        Route::post('/invitation', 'AuthController@invite')->name('auth.invitation');
     });
 
     Route::middleware('auth:api')->group(function () {
 
-        Route::prefix('users')->group(function () {
+        Route::prefix('users')->middleware(["auth:api", CheckUserRole::class])->group(function () {
             Route::get('/', [UserController::class, "index"])->name('users.index');
             Route::get('/{id}', [UserController::class, "show"])->name('users.show');
             Route::put('/{id}', [UserController::class, "update"])->name('users.update');
@@ -36,11 +39,12 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::prefix('subscription')->group(function () {
-            Route::get('/', 'SubscriptionController@index')->name('subscription.index');
-            Route::get('/payment', 'SubscriptionController@payment')->name('subscription.payment');
-            Route::put('/start-date', 'SubscriptionController@updateStartDate')->name('subscription.updateStartDate');
-            Route::put('/end-date', 'SubscriptionController@updateEndDate')->name('subscription.updateEndDate');
-            Route::put('/payment-date', 'SubscriptionController@updatePaymentDate')->name('subscription.updatePaymentDate');
+            Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
+            Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
+            Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
+            Route::put('/{id}/start-date', [SubscriptionController::class, "updateStartDate"])->name('subscription.updateStartDate');
+            Route::put('/{id}/end-date', [SubscriptionController::class, "updateEndDate"])->name('subscription.updateEndDate');
+            Route::put('/{id}/payment-method', [SubscriptionController::class, "updatePaymentMethod"])->name('subscription.updatePaymentMethod');
         });
 
         Route::prefix('profiles')->group(function () {

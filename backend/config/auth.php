@@ -17,7 +17,7 @@ return [
         // 'guard' => env(Request 'AUTH_GUARD', 'web'),
         // 'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
         'guard' => 'api',
-        'password' => 'users',
+        'passwords' => 'users',
     ],
 
     /*
