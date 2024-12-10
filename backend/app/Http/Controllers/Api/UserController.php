@@ -25,7 +25,7 @@ class UserController extends BaseController
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->errorResponse('User not found', 200);
+            return $this->errorResponse('User not found', 404);
         }
 
         $validated = $request->validate([
@@ -47,14 +47,14 @@ class UserController extends BaseController
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->errorResponse('User not found', 200);
+            return $this->errorResponse('User not found', 404);
         }
 
         if ($user->id == Auth::user()->id) {
-            return $this->errorResponse('You cannot delete yourself', 200);
+            return $this->errorResponse('You cannot delete yourself', 403);
         }
 
         $user->delete();
-        return $this->messageResponse("User deleted successfully", 201);
+        return $this->messageResponse("User deleted successfully", 204);
     }
 }

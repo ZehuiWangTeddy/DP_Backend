@@ -16,6 +16,7 @@ use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends BaseController
 {
@@ -106,40 +107,44 @@ class AuthController extends BaseController
             return $this->errorResponse(400, $validator->errors()->first());
         }
 
-        // Attempt to authenticate using the provided email and password
-        $token = Auth::attempt($validator->safe()->all());
+        // search for email
+        $user = User::where('email', $validator->safe(['email']))->first();
 
-        // If authentication fails, return error response
-        if (!$token) {
+        if (!$user) {
             return $this->errorResponse(400, 'Invalid email or password');
         }
-
-        // Retrieve authenticated user
-        $user = Auth::user();
 
         // Check if the user's account is locked
         if ($user->locked_until && $user->locked_until > now()) {
             return $this->errorResponse(400, 'Account locked. Try again later.');
         }
 
-        // Handle failed login attempts
-        if (!Hash::check($request->password, $user->password)) {
-            $user->increment('failed_login_attempts');
+        // Attempt to authenticate using the provided email and password
+        $token = Auth::attempt($validator->safe()->all());
 
+        // If authentication fails, return error response
+        if (!$token) {
             // If the user failed to log in 4 times, lock the account
             if ($user->failed_login_attempts >= 4) {
                 $user->update([
-                    'active' => false,
+                    // 'active' => false,
                     'trial_available' => false,
                     'locked_until' => now()->addMinutes(10), // Lock account for 10 minutes
                 ]);
             }
 
+            $user->update([
+                'failed_login_attempts' => ($user->failed_login_attempts ?: 0) + 1,
+            ]);
+
             return $this->errorResponse(400, 'Invalid email or password');
         }
 
+        // Retrieve authenticated user
+        $user = Auth::user();
+
         // Reset failed login attempts on successful login
-        $user->update(['failed_login_attempts' => 0]);
+        $user->update(['failed_login_attempts' => 0, 'active' => true]);
 
         return $this->StanderResponse(200, 'Login successful', [
             'user' => Auth::user(),
@@ -198,6 +203,38 @@ class AuthController extends BaseController
         }
 
         return $this->errorResponse(400, "Failed to send password reset link. Please try again.");
+    }
+
+    /**
+     * Reset User Password with reset password email
+     */
+    public function resetPasswordWithForgotEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ]);
+
+                $user->save();
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? $this->messageResponse("Password reset successfully.")
+            : $this->errorResponse(400, "Failed to reset password. Please try again.");
     }
 
     /**
