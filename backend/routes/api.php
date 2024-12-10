@@ -41,10 +41,11 @@ Route::prefix('v1')->group(function () {
         Route::prefix('subscriptions')->group(function () {
             Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
             Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
-            Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
-            Route::put('/{id}/start-date', [SubscriptionController::class, "updateStartDate"])->name('subscription.updateStartDate');
-            Route::put('/{id}/end-date', [SubscriptionController::class, "updateEndDate"])->name('subscription.updateEndDate');
-            Route::put('/{id}/payment-method', [SubscriptionController::class, "updatePaymentMethod"])->name('subscription.updatePaymentMethod');
+            Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
+            Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
+//            Route::put('/{id}/start-date', [SubscriptionController::class, "updateStartDate"])->name('subscription.updateStartDate');
+//            Route::put('/{id}/end-date', [SubscriptionController::class, "updateEndDate"])->name('subscription.updateEndDate');
+//            Route::put('/{id}/payment-method', [SubscriptionController::class, "updatePaymentMethod"])->name('subscription.updatePaymentMethod');
         });
 
         Route::prefix('profiles')->group(function () {

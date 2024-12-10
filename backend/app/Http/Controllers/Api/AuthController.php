@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Password;
@@ -115,8 +116,11 @@ class AuthController extends BaseController
         }
 
         // Check if the user's account is locked
-        if ($user->locked_until && $user->locked_until > now()) {
-            return $this->errorResponse(400, 'Account locked. Try again later.');
+        if ($user->locked_until) {
+            $lockedUntil = Carbon::parse($user->locked_until);
+            if (!$lockedUntil->isPast()) {
+                return $this->errorResponse(400, 'Account locked. Try again later.');
+            }
         }
 
         // Attempt to authenticate using the provided email and password
@@ -127,7 +131,7 @@ class AuthController extends BaseController
             // If the user failed to log in 4 times, lock the account
             if ($user->failed_login_attempts >= 4) {
                 $user->update([
-                    // 'active' => false,
+                    'active' => false,
                     'trial_available' => false,
                     'locked_until' => now()->addMinutes(10), // Lock account for 10 minutes
                 ]);
@@ -144,7 +148,7 @@ class AuthController extends BaseController
         $user = Auth::user();
 
         // Reset failed login attempts on successful login
-        $user->update(['failed_login_attempts' => 0, 'active' => true]);
+        $user->update(['failed_login_attempts' => 0, 'active' => true, 'trial_available' => true]);
 
         return $this->StanderResponse(200, 'Login successful', [
             'user' => Auth::user(),
