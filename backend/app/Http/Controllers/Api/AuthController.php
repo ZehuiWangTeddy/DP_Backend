@@ -205,6 +205,9 @@ class AuthController extends BaseController
         return $this->errorResponse(400, "Failed to send password reset link. Please try again.");
     }
 
+    /**
+     * Reset User Password with reset password email
+     */
     public function resetPasswordWithForgotEmail(Request $request)
     {
         $validator = Validator::make($request->all(), [

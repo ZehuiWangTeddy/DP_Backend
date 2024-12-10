@@ -14,20 +14,20 @@ class SubscriptionController extends BaseController
         return $this->paginationResponse($Subscriptions);
     }
 
-    protected function findSubscriptionOrFail($id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-        return $subscription;
-    }
+//    protected function findSubscriptionOrFail($id)
+//    {
+//        $subscription = Subscription::find($id);
+//        if (!$subscription) {
+//            abort(404, 'Subscription Not found');
+//        }
+//        return $subscription;
+//    }
 
     public function store(Request $request)
     {
         // Validate incoming request
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,user_id',
             'price' => 'required|in:7.99,10.99,13.99',
             'name' => 'required|in:SD,HD,UHD',
             'status' => 'nullable|in:paid,expired',
@@ -72,13 +72,19 @@ class SubscriptionController extends BaseController
 
     public function payment($id)
     {
-        $subscription = $this->findSubscriptionOrFail($id);
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            return $this->errorResponse('subscription not found', 404);
+        }
         return $this->dataResponse($subscription);
     }
 
     public function updateStartDate(Request $request, $id)
     {
-        $subscription =  $this->findSubscriptionOrFail($id);
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            abort(404, 'Subscription Not found');
+        }
 
         $validated = $request->validate([
             'start_date' => [
@@ -98,7 +104,10 @@ class SubscriptionController extends BaseController
 
     public function updateEndDate(Request $request, $id)
     {
-        $subscription =  $this->findSubscriptionOrFail($id);
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            abort(404, 'Subscription Not found');
+        }
 
         $startDate = $subscription->start_date;
 
@@ -120,7 +129,10 @@ class SubscriptionController extends BaseController
 
     public function updatePayment_method(Request $request, $id)
     {
-        $subscription =  $this->findSubscriptionOrFail($id);
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            abort(404, 'Subscription Not found');
+        }
 
         $validated = $request->validate([
             'payment_method' => [

@@ -38,7 +38,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
         });
 
-        Route::prefix('subscription')->group(function () {
+        Route::prefix('subscriptions')->group(function () {
             Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
             Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
             Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
