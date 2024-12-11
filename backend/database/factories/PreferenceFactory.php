@@ -13,6 +13,7 @@ class PreferenceFactory extends Factory
     {
         return [
             'profile_id' => \App\Models\Profile::factory(), // Relates to Profile
+            'content_preference' => $this->faker->randomElement(['movies', 'series', 'both']),
             'content_type' => $this->faker->randomElement([
                 '18+',
                 'For Kids',
