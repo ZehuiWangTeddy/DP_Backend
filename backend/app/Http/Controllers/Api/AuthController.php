@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB; // Add DB facade for transaction handling
-use PHPOpenSourceSaver\JWTAuth\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -68,7 +68,7 @@ class AuthController extends BaseController
             DB::commit();
 
             // Generate JWT token for the user
-            $token = auth()->login($user);
+            $token = JWTAuth::fromUser($user);
 
             // Return the response with token and user data
             return $this->dataResponse([
