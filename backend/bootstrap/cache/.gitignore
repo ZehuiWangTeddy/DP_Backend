@@ -1,2 +1,44 @@
-*
-!.gitignore
+# Laravel specific
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+
+# IDE specific
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Laravel Mix
+/public/css/
+/public/js/
+/public/mix-manifest.json
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite-journal
+
+# Cache and compiled files
+.php_cs.cache
+.phpunit.cache/
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Testing
+/coverage/
+.phpunit.cache
+
+# Composer
+composer.phar
