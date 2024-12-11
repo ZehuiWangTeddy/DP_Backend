@@ -50,7 +50,7 @@ class UserController extends BaseController
             return $this->errorResponse('User not found', 404);
         }
 
-        if ($user->id == Auth::user()->id) {
+        if ($user->user_id == Auth::user()->user_id) {
             return $this->errorResponse('You cannot delete yourself', 403);
         }
 
