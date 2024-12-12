@@ -26,8 +26,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password-with-forgot-email', [AuthController::class, 'resetPasswordWithForgotEmail'])->middleware('throttle:60,1')->name('password.reset');
     Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->middleware("auth:api")->name('password.resetPassword');
     Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout')->middleware("auth:api");
-    //        Route::post('/verification', 'AuthController@verify')->name('auth.verification');
-    //        Route::post('/invitation', 'AuthController@invite')->name('auth.invitation');
 });
 
 Route::middleware('auth:api')->group(function () {
@@ -42,10 +40,8 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
         Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
-        Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
-        Route::put('/{id}/start-date', [SubscriptionController::class, "updateStartDate"])->name('subscription.updateStartDate');
-        Route::put('/{id}/end-date', [SubscriptionController::class, "updateEndDate"])->name('subscription.updateEndDate');
-        Route::put('/{id}/payment-method', [SubscriptionController::class, "updatePaymentMethod"])->name('subscription.updatePaymentMethod');
+        Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
+        Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
     });
 
     Route::prefix('profiles')->group(function () {
@@ -67,7 +63,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/start', 'WatchHistoryController@startEpisode')->name('watchHistory.startEpisode');
             Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/finish', 'WatchHistoryController@finishEpisode')->name('watchHistory.finishEpisode');
         });
-        
+
         Route::prefix('{id}/watch-list')->group(function () {
             Route::get('/', 'WatchListController@index')->name('watchList.index');
             Route::post('/movie/{movieId}', 'WatchListController@addMovie')->name('watchList.addMovie');
@@ -75,7 +71,7 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}', 'WatchListController@addEpisode')->name('watchList.addEpisode');
             Route::delete('/series/{seriesId}/season/{seasonId}/episode/{episodeId}', 'WatchListController@removeEpisode')->name('watchList.removeEpisode');
         });
-        
+
         Route::prefix('{id}/recommendations')->group(function () {
             Route::get('/', 'RecommendationController@index')->name('recommendations.index');
             Route::post('/movie', 'RecommendationController@addMovie')->name('recommendations.addMovie');
