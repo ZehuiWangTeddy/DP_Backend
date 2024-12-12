@@ -37,5 +37,5 @@ class RecommendationController extends Controller
             'series' => $recommendedSeries,
         ]);
     }
-    
+
 }

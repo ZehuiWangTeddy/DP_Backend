@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('content_type', 255); // Content type
             $table->json('genre')->default(json_encode([])); // Genre as JSON
             $table->integer('minimum_age')->default(0); // Minimum age restriction
+            $table->enum('content_preference', ['movies', 'series', 'both'])->nullable(); 
         });
     }
 
