@@ -9,15 +9,15 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
 
-// Route::get('login', function(){
-//     return response()->json([
-//         'meta' => [
-//             'code' => 401,
-//             'message' => 'Unauthenticated.',
-//         ],
-//         'data' => [],
-//     ]);
-// })->name('login');
+ Route::get('login', function(){
+     return response()->json([
+         'meta' => [
+             'code' => 401,
+             'message' => 'Unauthenticated.',
+         ],
+         'data' => [],
+     ]);
+ })->name('login');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, "register"])->name('auth.register');
