@@ -30,6 +30,7 @@ class Preference extends Model
      */
     protected $fillable = [
         'profile_id',
+        'content_preference',
         'content_type',
         'genre',
         'minimum_age',
