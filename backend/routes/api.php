@@ -39,6 +39,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
+        Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
         Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
         Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
         Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
