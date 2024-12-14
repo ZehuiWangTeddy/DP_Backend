@@ -8,25 +8,11 @@ use Illuminate\Http\Request;
 class MovieController extends Controller
 {
     /**
-     * Display a listing of the movies.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Validation rules for creating a movie
      */
-    public function index()
+    private function storeRules()
     {
-        $movies = Movie::all();
-        return response()->json($movies, 200);
-    }
-
-    /**
-     * Store a newly created movie in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
+        return [
             'title' => 'required|string|max:100',
             'duration' => ['required', 'regex:/^\d{2}:\d{2}:\d{2}$/'],
             'release_date' => 'required|date',
@@ -35,41 +21,15 @@ class MovieController extends Controller
             'genre' => 'required|array',
             'viewing_classification' => 'required|string',
             'available_languages' => 'required|array',
-        ]);
-
-        // Encode array fields to JSON
-        $validated['quality'] = json_encode($validated['quality']);
-        $validated['genre'] = json_encode($validated['genre']);
-        $validated['available_languages'] = json_encode($validated['available_languages']);
-
-        $movie = Movie::create($validated);
-        return response()->json($movie, 201);
+        ];
     }
 
     /**
-     * Display the specified movie.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
+     * Validation rules for updating a movie
      */
-    public function show($id)
+    private function updateRules()
     {
-        $movie = Movie::findOrFail($id);
-        return response()->json($movie, 200);
-    }
-
-    /**
-     * Update the specified movie in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, $id)
-    {
-        $movie = Movie::findOrFail($id);
-
-        $validated = $request->validate([
+        return [
             'title' => 'sometimes|string|max:100',
             'duration' => ['sometimes', 'regex:/^\d{2}:\d{2}:\d{2}$/'],
             'release_date' => 'sometimes|date',
@@ -78,28 +38,75 @@ class MovieController extends Controller
             'genre' => 'sometimes|array',
             'viewing_classification' => 'sometimes|string',
             'available_languages' => 'sometimes|array',
-        ]);
+        ];
+    }
 
-        // Encode array fields to JSON if they are present
-        if (isset($validated['quality'])) {
-            $validated['quality'] = json_encode($validated['quality']);
+    /**
+     * Encode array fields to JSON
+     */
+    private function encodeArrayFields($data)
+    {
+        if (isset($data['quality'])) {
+            $data['quality'] = json_encode($data['quality']);
         }
-        if (isset($validated['genre'])) {
-            $validated['genre'] = json_encode($validated['genre']);
+        if (isset($data['genre'])) {
+            $data['genre'] = json_encode($data['genre']);
         }
-        if (isset($validated['available_languages'])) {
-            $validated['available_languages'] = json_encode($validated['available_languages']);
+        if (isset($data['available_languages'])) {
+            $data['available_languages'] = json_encode($data['available_languages']);
         }
+        if (isset($data['viewing_classification'])) {
+            $data['viewing_classification'] = json_encode($data['viewing_classification']);
+        }
+        return $data;
+    }
+
+    /**
+     * Display a listing of the movies.
+     */
+    public function index()
+    {
+        $movies = Movie::all();
+        return response()->json(['data' => $movies, 'message' => 'Movies retrieved successfully'], 200);
+    }
+
+    /**
+     * Store a newly created movie in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate($this->storeRules());
+        $validated = $this->encodeArrayFields($validated);
+        
+        $movie = Movie::create($validated);
+        return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
+    }
+
+    /**
+     * Display the specified movie.
+     */
+    public function show($id)
+    {
+        $movie = Movie::findOrFail($id);
+        return response()->json(['data' => $movie, 'message' => 'Movie retrieved successfully'], 200);
+    }
+
+    /**
+     * Update the specified movie in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $movie = Movie::findOrFail($id);
+        
+        $validated = $request->validate($this->updateRules());
+        $validated = $this->encodeArrayFields($validated);
 
         $movie->update($validated);
-        return response()->json($movie, 200);
+        return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
     }
 
     /**
      * Remove the specified movie from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {

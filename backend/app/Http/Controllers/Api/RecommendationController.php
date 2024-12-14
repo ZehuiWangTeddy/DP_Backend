@@ -35,7 +35,8 @@ class RecommendationController extends Controller
         return response()->json([
             'movies' => $recommendedMovies,
             'series' => $recommendedSeries,
-        ]);
+            'message' => 'Recommendations retrieved successfully'
+        ], 200);
     }
 
 }

@@ -82,7 +82,7 @@ Route::middleware('auth:api')->group(function () {
         });
     });
 
-    Route::apiResource('movies', MovieController::class)->except(['edit', 'create'])->names([
+    Route::apiResource('movies', MovieController::class)->middleware(["auth:api", CheckUserRole::class])->except(['edit', 'create'])->names([      
         'index' => 'movies.index',
         'store' => 'movies.store',
         'show' => 'movies.show',
