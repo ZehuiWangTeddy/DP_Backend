@@ -162,14 +162,14 @@ class AuthController extends BaseController
             return $this->errorResponse(500, 'Failed to save user data');
         }
 
-        return $this->StanderResponse(200, 'Login successful', [
+        return $this->dataResponse([
             'user' => Auth::user(),
             'access_token' => [
                 'token' => $token,
                 'token_type' => 'bearer',
                 'expires_in' => Auth::factory()->getTTL() * 60,
             ],
-        ]);
+        ], 'Login successful');
     }
 
     /**
