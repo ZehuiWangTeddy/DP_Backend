@@ -147,8 +147,20 @@ class AuthController extends BaseController
         // Retrieve authenticated user
         $user = Auth::user();
 
+        // Debugging: Check if $user is an instance of User
+        if (!($user instanceof User)) {
+            return $this->errorResponse(500, 'User instance not found');
+        }
+
         // Reset failed login attempts on successful login
-        $user->update(['failed_login_attempts' => 0, 'active' => true, 'trial_available' => true]);
+        $user->failed_login_attempts = 0;
+        $user->active = true;
+        $user->trial_available = true;
+
+        // Save the user
+        if (!$user->save()) {
+            return $this->errorResponse(500, 'Failed to save user data');
+        }
 
         return $this->StanderResponse(200, 'Login successful', [
             'user' => Auth::user(),
@@ -171,7 +183,7 @@ class AuthController extends BaseController
             // Invalidate the token to log the user out
             Auth::invalidate(true);
 
-            return $this->messageResponse('Successfully logged out');
+            return $this->messageResponse('Successfully logged out', 200);
         } catch (Exception $e) {
             // Handle exception if token invalidation fails
             return $this->errorResponse(500, "Failed to logout");
@@ -203,7 +215,7 @@ class AuthController extends BaseController
 
         // Return success or failure response
         if ($response == Password::RESET_LINK_SENT) {
-            return $this->messageResponse("Password reset link sent successfully.");
+            return $this->messageResponse("Password reset link sent successfully.", 200);
         }
 
         return $this->errorResponse(400, "Failed to send password reset link. Please try again.");
@@ -237,7 +249,7 @@ class AuthController extends BaseController
         );
 
         return $status === Password::PASSWORD_RESET
-            ? $this->messageResponse("Password reset successfully.")
+            ? $this->messageResponse("Password reset successfully.", 200)
             : $this->errorResponse(400, "Failed to reset password. Please try again.");
     }
 
@@ -269,10 +281,18 @@ class AuthController extends BaseController
             return $this->errorResponse(400, "Invalid password. Please try again.");
         }
 
+        // Retrieve authenticated user
+        $user = Auth::user();
+
+        // Debugging: Check if $user is an instance of User
+        if (!($user instanceof User)) {
+            return $this->errorResponse(500, 'User instance not found');
+        }
+
         // Perform password reset
         $user->password = Hash::make($password); // Update password
         if ($user->save()) {
-            return $this->messageResponse("Password reset successfully.");
+            return $this->messageResponse("Password reset successfully.", 200);
         }
 
         return $this->errorResponse(400, "Failed to reset password. Please try again.");

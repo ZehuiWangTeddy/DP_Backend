@@ -10,7 +10,7 @@ class PreferenceController extends Controller
     public function index($id)
     {
         $preferences = Preference::where('profile_id', $id)->get();
-        return response()->json($preferences, 200);
+        return response()->json(['data' => $preferences, 'message' => 'Preferences retrieved successfully'], 200);
     }
 
     public function store(Request $request, $id)
@@ -26,7 +26,7 @@ class PreferenceController extends Controller
 
         $preference = Preference::create($validatedData);
 
-        return response()->json($preference, 201);
+        return response()->json(['data' => $preference, 'message' => 'Preference created successfully'], 201);
     }
 
     public function update(Request $request, $id)
@@ -51,6 +51,6 @@ class PreferenceController extends Controller
         // Update preference with validated data
         $preference->update($validatedData);
 
-        return response()->json($preference, 200);
+        return response()->json(['data' => $preference, 'message' => 'Preference updated successfully'], 200);
     }
 }

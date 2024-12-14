@@ -2,34 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\StanderOutputHelper;
-
 class BaseController extends Controller
 {
     public const DEFAULT_CODE = 200;
 
-    public function errorResponse($error_code, $error_message)
+    // Success responses
+    public function successResponse($data, $message = "success")
     {
-        return $this->StanderResponse($error_code, $error_message, []);
+        return $this->createResponse(self::DEFAULT_CODE, $message, $data);
     }
 
-    public function messageResponse($message, $code = 200)
+    // Error responses
+    public function badRequestResponse($message = "Bad Request")
     {
-        return $this->StanderResponse($code, $message, []);
+        return $this->createResponse(400, $message);
+    }
+
+    public function unauthorizedResponse($message = "Unauthorized")
+    {
+        return $this->createResponse(401, $message);
+    }
+
+    public function forbiddenResponse($message = "Forbidden")
+    {
+        return $this->createResponse(403, $message);
+    }
+
+    public function notFoundResponse($message = "Not Found")
+    {
+        return $this->createResponse(404, $message);
+    }
+
+    public function internalErrorResponse($message = "Internal Server Error")
+    {
+        return $this->createResponse(500, $message);
+    }
+
+    // Custom responses
+    public function errorResponse($errorCode, $errorMessage)
+    {
+        return $this->createResponse($errorCode, $errorMessage);
+    }
+
+    public function messageResponse($message, $code = self::DEFAULT_CODE)
+    {
+        return $this->createResponse($code, $message);
     }
 
     public function dataResponse($data, $message = "success")
     {
-        return $this->StanderResponse(self::DEFAULT_CODE, $message, $data);
+        return $this->createResponse(self::DEFAULT_CODE, $message, $data);
     }
 
-    public function paginationResponse($data, $message = "success")
+    public function paginationResponse(array $data, $message = "success")
     {
-        return StanderOutputHelper::paginationResponse(self::DEFAULT_CODE, $message, $data);
+        return $this->createPaginationResponse(self::DEFAULT_CODE, $message, $data);
     }
 
-    public function StanderResponse($code, $message, $data = [])
+    // Core response methods
+    private function createResponse($code, $message, $data = [])
     {
-        return StanderOutputHelper::StanderResponse($code, $message, $data);
+        return [
+            'code' => $code,
+            'message' => $message,
+            'data' => $data,
+        ];
+    }
+
+    private function createPaginationResponse($code, $message, array $data)
+    {
+        return [
+            'code' => $code,
+            'message' => $message,
+            'data' => [
+                'items' => $data['items'] ?? [],
+                'pagination' => $data['pagination'] ?? []
+            ]
+        ];
     }
 }

@@ -81,9 +81,9 @@ class SubscriptionController extends BaseController
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
-            return $this->errorResponse('subscription not found', 404);
+            return $this->errorResponse('Subscription not found', 404);
         }
-        return $this->dataResponse($subscription);
+        return $this->dataResponse($subscription, "Subscription payment details retrieved successfully");
     }
 
     public function updateStartDate(Request $request, $id)
@@ -106,7 +106,7 @@ class SubscriptionController extends BaseController
         ]);
 
         $subscription->update($validated);
-        return $this->dataResponse($subscription);
+        return $this->dataResponse($subscription, "Subscription start date updated successfully");
     }
 
     public function updateEndDate(Request $request, $id)
@@ -131,7 +131,7 @@ class SubscriptionController extends BaseController
         ]);
 
         $subscription->update($validated);
-        return $this->dataResponse($subscription);
+        return $this->dataResponse($subscription, "Subscription end date updated successfully");
     }
 
     public function updatePayment_method(Request $request, $id)
@@ -155,7 +155,7 @@ class SubscriptionController extends BaseController
         ]);
 
         $subscription->update($validated);
-        return $this->dataResponse($subscription);
+        return $this->dataResponse($subscription, "Subscription payment method updated successfully");
     }
 
     public function update(Request $request, $id)
@@ -180,10 +180,10 @@ class SubscriptionController extends BaseController
         // Start database transaction
         DB::beginTransaction();
         try {
-            // Create the new subscription record in the database
+            // Update the subscription record in the database
             $subscription->update($validated->toArray());
 
-            // Commit the transaction after successful user creation
+            // Commit the transaction after successful update
             DB::commit();
 
             // Return the response with subscription data
@@ -196,7 +196,7 @@ class SubscriptionController extends BaseController
 
             Log::error($e);
             // Return error response in case of failure
-            return $this->errorResponse(500, 'Failed to add new subscription. Please try again later.');
+            return $this->errorResponse(500, 'Failed to update subscription. Please try again later.');
         }
     }
 
@@ -207,6 +207,6 @@ class SubscriptionController extends BaseController
             return $this->errorResponse('Subscription not found', 404);
         }
         $subscription->delete();
-        return $this->messageResponse('Subscription deleted successfully.');
+        return $this->messageResponse('Subscription deleted successfully.', 200);
     }
 }

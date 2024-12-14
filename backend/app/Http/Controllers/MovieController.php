@@ -55,6 +55,9 @@ class MovieController extends Controller
         if (isset($data['available_languages'])) {
             $data['available_languages'] = json_encode($data['available_languages']);
         }
+        if (isset($data['viewing_classification'])) {
+            $data['viewing_classification'] = json_encode($data['viewing_classification']);
+        }
         return $data;
     }
 
@@ -64,7 +67,7 @@ class MovieController extends Controller
     public function index()
     {
         $movies = Movie::all();
-        return response()->json($movies, 200);
+        return response()->json(['data' => $movies, 'message' => 'Movies retrieved successfully'], 200);
     }
 
     /**
@@ -76,7 +79,7 @@ class MovieController extends Controller
         $validated = $this->encodeArrayFields($validated);
         
         $movie = Movie::create($validated);
-        return response()->json($movie, 201);
+        return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
     }
 
     /**
@@ -85,7 +88,7 @@ class MovieController extends Controller
     public function show($id)
     {
         $movie = Movie::findOrFail($id);
-        return response()->json($movie, 200);
+        return response()->json(['data' => $movie, 'message' => 'Movie retrieved successfully'], 200);
     }
 
     /**
@@ -99,7 +102,7 @@ class MovieController extends Controller
         $validated = $this->encodeArrayFields($validated);
 
         $movie->update($validated);
-        return response()->json($movie, 200);
+        return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
     }
 
     /**
