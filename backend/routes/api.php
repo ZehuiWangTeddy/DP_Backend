@@ -108,19 +108,19 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('series/{seriesId}/seasons')->group(function () {
         Route::get('/', [SeasonController::class, 'index']);
         Route::post('/', [SeasonController::class, 'store']);
-        Route::put('/', [SeasonController::class, 'update']);
-        Route::delete('/', [SeasonController::class, 'destroy']);
+        Route::put('/{seasonId}', [SeasonController::class, 'update']);
+        Route::delete('/{seasonId}', [SeasonController::class, 'destroy']);
 
         Route::prefix('{seasonId}/episodes')->group(function () {
             Route::post('/', 'EpisodeController@store')->name('episodes.store');
-            Route::put('/', 'EpisodeController@update')->name('episodes.update');
-            Route::delete('/', 'EpisodeController@destroy')->name('episodes.destroy');
+            Route::put('/{episodeId}', 'EpisodeController@update')->name('episodes.update');
+            Route::delete('/{episodeId}', 'EpisodeController@destroy')->name('episodes.destroy');
 
             Route::prefix('{episodeId}/subtitles')->group(function () {
                 Route::post('/', 'SubtitleController@store')->name('episodes.subtitles.store');
                 Route::get('/', 'SubtitleController@index')->name('episodes.subtitles.index');
-                Route::put('/', 'SubtitleController@update')->name('episodes.subtitles.update');
-                Route::delete('/', 'SubtitleController@destroy')->name('episodes.subtitles.destroy');
+                Route::put('/{subtitleId}', 'SubtitleController@update')->name('episodes.subtitles.update');
+                Route::delete('/{subtitleId}', 'SubtitleController@destroy')->name('episodes.subtitles.destroy');
             });
         });
     });
