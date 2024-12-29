@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\StanderOutputHelper;
+use Illuminate\Contracts\Pagination\Paginator;
+
 class BaseController extends Controller
 {
     public const DEFAULT_CODE = 200;
@@ -54,7 +57,7 @@ class BaseController extends Controller
         return $this->createResponse(self::DEFAULT_CODE, $message, $data);
     }
 
-    public function paginationResponse(array $data, $message = "success")
+    public function paginationResponse(Paginator $data, $message = "success")
     {
         return $this->createPaginationResponse(self::DEFAULT_CODE, $message, $data);
     }
@@ -62,22 +65,12 @@ class BaseController extends Controller
     // Core response methods
     private function createResponse($code, $message, $data = [])
     {
-        return [
-            'code' => $code,
-            'message' => $message,
-            'data' => $data,
-        ];
+
+        return StanderOutputHelper::StanderResponse($code, $message, $data);
     }
 
-    private function createPaginationResponse($code, $message, array $data)
+    private function createPaginationResponse($code, $message, Paginator $data)
     {
-        return [
-            'code' => $code,
-            'message' => $message,
-            'data' => [
-                'items' => $data['items'] ?? [],
-                'pagination' => $data['pagination'] ?? []
-            ]
-        ];
+        return StanderOutputHelper::paginationResponse($code, $message, $data);
     }
 }

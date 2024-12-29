@@ -37,14 +37,6 @@ class AuthController extends BaseController
         // Validate incoming request
         $validated = $request->validated();
 
-        // Validate received referral code (if provided)
-        if (!empty($validated['received_referral_code'])) {
-            $validReferralCode = User::where('sent_referral_code', $validated['received_referral_code'])->exists();
-            if (!$validReferralCode) {
-                return $this->errorResponse(400, 'Invalid referral code');
-            }
-        }
-
         // Start database transaction
         DB::beginTransaction();
 
@@ -101,7 +93,7 @@ class AuthController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string',
-            'password' => 'required|string',
+            'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -296,5 +288,10 @@ class AuthController extends BaseController
         }
 
         return $this->errorResponse(400, "Failed to reset password. Please try again.");
+    }
+
+    public function loginFailed()
+    {
+        return $this->errorResponse(401, 'Unauthenticated');
     }
 }
