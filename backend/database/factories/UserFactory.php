@@ -69,8 +69,6 @@ class UserFactory extends Factory
             'locked_until' => $lockedUntil, // Set locked_until if inactive
             'trial_available' => $trialAvailable, // If inactive, trial_available is false
             'user_role' => fake()->boolean(), // Assuming a binary role (admin/user)
-            'password_reset_token' => fake()->optional()->randomElement([Str::random(60), null]), // Random token or null
-            'password_reset_token_expiry' => fake()->optional()->randomElement([now()->addHours(2), null]), // Expiry time for the reset token
         ];
     }
 

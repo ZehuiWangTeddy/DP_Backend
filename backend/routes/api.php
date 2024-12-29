@@ -9,17 +9,8 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
 
- Route::get('login', function(){
-     return response()->json([
-         'meta' => [
-             'code' => 401,
-             'message' => 'Unauthenticated.',
-         ],
-         'data' => [],
-     ]);
- })->name('login');
-
 Route::prefix('auth')->group(function () {
+    Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
     Route::post('/register', [AuthController::class, "register"])->name('auth.register');
     Route::post('/login', [AuthController::class, "login"])->name('auth.login');
     Route::post('/send-reset-password-email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:60,1');
@@ -37,9 +28,9 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
     });
 
-    Route::prefix('subscriptions')->group(function () {
+    Route::prefix('subscriptions')->middleware(["auth:api", CheckUserRole::class])->group(function () {
         Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
-        Route::get('/{id}', [SubscriptionController::class, "payment"])->name('subscription.payment');
+        Route::get('/{id}', [SubscriptionController::class, "show"])->name('subscription.payment');
         Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
         Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
         Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
@@ -82,7 +73,7 @@ Route::middleware('auth:api')->group(function () {
         });
     });
 
-    Route::apiResource('movies', MovieController::class)->middleware(["auth:api", CheckUserRole::class])->except(['edit', 'create'])->names([      
+    Route::apiResource('movies', MovieController::class)->middleware(["auth:api", CheckUserRole::class])->except(['edit', 'create'])->names([
         'index' => 'movies.index',
         'store' => 'movies.store',
         'show' => 'movies.show',

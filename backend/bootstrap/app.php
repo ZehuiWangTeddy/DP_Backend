@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\AcceptXMLInput::class,
+        ]);
+
+        $middleware->validateCsrfTokens([
+            '*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

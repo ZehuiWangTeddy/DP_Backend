@@ -11,8 +11,15 @@ class UserController extends BaseController
 {
     public function index(Request $request)
     {
-        $users = User::paginate();
-        return $this->paginationResponse($users);
+
+        $userModel = new User();
+
+        $search = $request->get('search');
+        if ($search) {
+            $userModel = $userModel->where('name', 'like', '%' . $search . '%');
+        }
+
+        return $this->paginationResponse($userModel->paginate(request()->get('per_page', 10)));
     }
 
     public function show($id)
