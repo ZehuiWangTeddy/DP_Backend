@@ -8,6 +8,7 @@ use App\Http\Middleware\CheckUserRole;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\ProfileController;
 
 Route::prefix('auth')->group(function () {
     Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
@@ -37,10 +38,10 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('profiles')->group(function () {
-        Route::get('/', 'ProfileController@index')->name('profiles.index');
-        Route::get('/{id}', 'ProfileController@show')->name('profiles.show');
-        Route::put('/{id}', 'ProfileController@update')->name('profiles.update');
-        Route::delete('/{id}', 'ProfileController@destroy')->name('profiles.destroy');
+        Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
+        Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
+        Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
+        Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
 
         Route::prefix('{id}/preferences')->group(function () {
             Route::get('/', 'PreferenceController@index')->name('preferences.index');
