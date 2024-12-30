@@ -14,8 +14,8 @@
    ```
 
 ## **Setting Up the `.env` File**
-1. Create a `.env` file in the `backend` directory.
-2. Add the following content:
+1. Based on `.env.example` content to create a `.env` file in the `backend` directory
+2. Set `database` and `session` part like the following content:
    ```env
    DB_CONNECTION=pgsql
    DB_HOST=127.0.0.1
@@ -59,7 +59,7 @@
    ```
 2. Access the application at `http://localhost:8000`.
 
-## **Testing**
+## **Add Mock Data**
 1. Populate the database with seed data:
    ```bash
    php artisan db:seed
@@ -69,10 +69,14 @@
    php artisan config:clear
    php artisan cache:clear
    ```
-## **Add API secret**
-1. Add API secret in .env file
+## **Set API key and secret**
+1. Generate API key in .env file
+    ```bash 
+    php artisan key:generate
+    ```
+2. Generate API secret in .env file
     ```bash
-        php artisan jwt:secret
+    php artisan jwt:secret
     ```
 
 ## **Notes**
