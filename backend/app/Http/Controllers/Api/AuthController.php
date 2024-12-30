@@ -57,15 +57,19 @@ class AuthController extends BaseController
                 'has_discount' => $hasDiscount,
             ]);
 
+            // Load the profile relationship
+            $user->load('profile');
+
             // Commit the transaction after successful user creation
             DB::commit();
 
             // Generate JWT token for the user
             $token = JWTAuth::fromUser($user);
 
-            // Return the response with token and user data
+            // Return the response with token, user data, and profile
             return $this->dataResponse([
                 'user' => $user->only(['user_id', 'name', 'email', 'address', 'user_role']),
+                'profile' => $user->profile, // Include profile in the response
                 'user_referral_code' => $user->sent_referral_code,
                 'received_referral_code' => $user->received_referral_code,
                 'has_discount' => $user->has_discount,
