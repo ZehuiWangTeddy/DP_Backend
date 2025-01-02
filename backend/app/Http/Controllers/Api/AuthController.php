@@ -70,7 +70,7 @@ class AuthController extends BaseController
             // Return the response with token, user data, and profile
             return $this->dataResponse([
                 'user' => $user->only(['user_id', 'name', 'email', 'address', 'user_role']),
-                'profile' => $profile, // Include the first profile in the response
+                'profiles' => $user->profiles, // Include all profiles in the response
                 'user_referral_code' => $user->sent_referral_code,
                 'received_referral_code' => $user->received_referral_code,
                 'has_discount' => $user->has_discount,
