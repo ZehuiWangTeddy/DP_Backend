@@ -122,4 +122,16 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
         Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
     });
+    
+    // Add separate routes for movies and episodes
+    Route::prefix('movies')->group(function () {
+        Route::get('/', [MovieController::class, 'index'])->name('movies.index');
+        Route::get('/{id}', [MovieController::class, 'show'])->name('movies.show');
+    });
+    
+    Route::prefix('series')->group(function () {
+        Route::get('/', [SeriesController::class, 'index'])->name('series.index');
+        Route::get('/{id}', [SeriesController::class, 'show'])->name('series.show');
+    });
+    
 });
