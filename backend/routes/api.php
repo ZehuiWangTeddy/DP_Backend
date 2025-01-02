@@ -122,6 +122,4 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
         Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
     });
-
-    
 });
