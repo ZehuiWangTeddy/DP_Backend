@@ -63,24 +63,23 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
     /**
      * Automatically create a profile when a user is created.
      */
-    protected static function booted()
+    protected static function booted(): void
     {
-        static::created(function ($user) {
-            $user->profile()->create([
-                'user_id' => $user->user_id, // Explicitly set the user_id
+        static::created(function ($user): void {
+            $user->profiles()->create([ // Correct usage of the profiles relationship
                 'name' => $user->name,
                 'language' => 'en',
                 'child_profile' => false,
             ]);
         });
-    }    
+    }      
 
     /**
      * Define the relationship to the Profile model.
      */
-    public function profile()
+    public function profiles()
     {
-        return $this->hasOne(Profile::class, 'user_id', 'user_id');
+        return $this->hasMany(Profile::class, 'user_id', 'user_id');
     }
 
     /**

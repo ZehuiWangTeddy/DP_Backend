@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
@@ -43,5 +44,35 @@ class ProfileController extends Controller
         $profile->delete();
 
         return response()->json(['message' => 'Profile deleted successfully']);
+    }
+
+    public function createProfile(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+
+        // Check if the user already has 4 profiles
+        if ($user->profiles()->count() >= 4) {
+            return response()->json(['message' => 'You can only have a maximum of 4 profiles.'], 400);
+        }
+
+        // Validate the incoming data
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'photo_path' => 'nullable|string|max:255',
+            'child_profile' => 'required|boolean',
+            'date_of_birth' => 'nullable|date',
+            'language' => 'nullable|string|max:20',
+        ]);
+
+        // Create the new profile
+        $profile = $user->profiles()->create([
+            'name' => $validated['name'],
+            'photo_path' => $validated['photo_path'] ?? null,
+            'child_profile' => $validated['child_profile'],
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'language' => $validated['language'] ?? 'en',
+        ]);
+
+        return response()->json(['message' => 'Profile created successfully.', 'profile' => $profile]);
     }
 }

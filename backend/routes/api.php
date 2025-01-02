@@ -42,6 +42,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
         Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
         Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
+        Route::post('/', [ProfileController::class, "createProfile"])->name('profiles.create');
 
         Route::prefix('{id}/preferences')->group(function () {
             Route::get('/', 'PreferenceController@index')->name('preferences.index');
