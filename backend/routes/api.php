@@ -8,6 +8,7 @@ use App\Http\Middleware\CheckUserRole;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\MediaController;
 
 Route::prefix('auth')->group(function () {
     Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
@@ -115,4 +116,12 @@ Route::middleware('auth:api')->group(function () {
             });
         });
     });
+
+    Route::prefix('media')->group(function () {
+        Route::post('/upload', [MediaController::class, 'upload'])->name('media.upload');
+        Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
+        Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
+    });
+
+    
 });
