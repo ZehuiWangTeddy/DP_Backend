@@ -57,8 +57,9 @@ class AuthController extends BaseController
                 'has_discount' => $hasDiscount,
             ]);
 
-            // Load the profile relationship
-            $user->load('profile');
+            // Load the profiles relationship and get the first profile
+            $user->load('profiles');
+            $profile = $user->profiles->first();
 
             // Commit the transaction after successful user creation
             DB::commit();
@@ -69,23 +70,20 @@ class AuthController extends BaseController
             // Return the response with token, user data, and profile
             return $this->dataResponse([
                 'user' => $user->only(['user_id', 'name', 'email', 'address', 'user_role']),
-                'profile' => $user->profile, // Include profile in the response
+                'profile' => $profile, // Include the first profile in the response
                 'user_referral_code' => $user->sent_referral_code,
                 'received_referral_code' => $user->received_referral_code,
                 'has_discount' => $user->has_discount,
                 'access_token' => [
                     'token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => Auth::factory()->getTTL() * 60, // Token expiration
+                    'expires_in' => Auth::factory()->getTTL() * 60,
                 ],
             ], "Registration successful");
         } catch (Exception $e) {
             // If anything goes wrong, roll back the transaction
             DB::rollBack();
-
             Log::error($e);
-            // Return error response in case of failure
-
             return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }
     }
