@@ -9,6 +9,7 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MediaController;
 
 Route::prefix('auth')->group(function () {
     Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
