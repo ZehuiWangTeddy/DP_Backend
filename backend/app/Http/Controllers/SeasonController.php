@@ -39,14 +39,16 @@ class SeasonController extends Controller
     /**
      * Update the specified season.
      */
-    public function update(Request $request, $seriesId)
+    public function update(Request $request, $seriesId, $seasonId)
     {
         $validated = $request->validate([
             'season_number' => 'sometimes|integer|min:1',
             'release_date' => 'sometimes|date',
         ]);
 
-        $season = Season::where('series_id', $seriesId)->findOrFail($request->season_id);
+        $season = Season::where('series_id', $seriesId)
+                        ->where('season_id', $seasonId)
+                        ->firstOrFail();
         $season->update($validated);
 
         return response()->json($season, 200);
@@ -55,11 +57,13 @@ class SeasonController extends Controller
     /**
      * Remove the specified season.
      */
-    public function destroy($seriesId)
+    public function destroy($seriesId, $seasonId)
     {
-        $season = Season::where('series_id', $seriesId)->findOrFail(request('season_id'));
+        $season = Season::where('series_id', $seriesId)
+                        ->where('season_id', $seasonId)
+                        ->firstOrFail();
         $season->delete();
-
+    
         return response()->json(['message' => 'Season deleted successfully'], 200);
     }
 } 

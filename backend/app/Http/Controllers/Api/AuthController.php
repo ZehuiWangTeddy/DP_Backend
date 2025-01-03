@@ -57,31 +57,33 @@ class AuthController extends BaseController
                 'has_discount' => $hasDiscount,
             ]);
 
+            // Load the profiles relationship and get the first profile
+            $user->load('profiles');
+            $profile = $user->profiles->first();
+
             // Commit the transaction after successful user creation
             DB::commit();
 
             // Generate JWT token for the user
             $token = JWTAuth::fromUser($user);
 
-            // Return the response with token and user data
+            // Return the response with token, user data, and profile
             return $this->dataResponse([
                 'user' => $user->only(['user_id', 'name', 'email', 'address', 'user_role']),
+                'profiles' => $user->profiles, // Include all profiles in the response
                 'user_referral_code' => $user->sent_referral_code,
                 'received_referral_code' => $user->received_referral_code,
                 'has_discount' => $user->has_discount,
                 'access_token' => [
                     'token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => Auth::factory()->getTTL() * 60, // Token expiration
+                    'expires_in' => Auth::factory()->getTTL() * 60,
                 ],
             ], "Registration successful");
         } catch (Exception $e) {
             // If anything goes wrong, roll back the transaction
             DB::rollBack();
-
             Log::error($e);
-            // Return error response in case of failure
-
             return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }
     }

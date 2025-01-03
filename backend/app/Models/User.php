@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use App\Models\Profile;
 
 class User extends Authenticatable implements JWTSubject, CanResetPassword
 {
@@ -20,12 +21,14 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
      * @var bool
      */
     public $timestamps = false;
+
     /**
      * The primary key associated with the table.
      *
      * @var string
      */
     protected $primaryKey = 'user_id';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -56,6 +59,30 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
         'password',
         'remember_token',
     ];
+
+    /**
+     * Define the relationship to the Profile model.
+     */
+    public function profiles()
+    {
+        return $this->hasMany(Profile::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Create initial profile after user registration
+     */
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            Profile::create([
+                'user_id' => $user->user_id,
+                'name' => $user->name,
+                'child_profile' => false,
+                'language' => 'en',
+                'date_of_birth' => '1970-01-01'
+            ]);
+        });
+    }
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.

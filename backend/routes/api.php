@@ -8,6 +8,8 @@ use App\Http\Middleware\CheckUserRole;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MediaController;
 
 Route::prefix('auth')->group(function () {
     Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
@@ -37,10 +39,11 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('profiles')->group(function () {
-        Route::get('/', 'ProfileController@index')->name('profiles.index');
-        Route::get('/{id}', 'ProfileController@show')->name('profiles.show');
-        Route::put('/{id}', 'ProfileController@update')->name('profiles.update');
-        Route::delete('/{id}', 'ProfileController@destroy')->name('profiles.destroy');
+        Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
+        Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
+        Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
+        Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
+        Route::post('/{id}', [ProfileController::class, "createProfile"])->name('profiles.create');
 
         Route::prefix('{id}/preferences')->group(function () {
             Route::get('/', 'PreferenceController@index')->name('preferences.index');
@@ -99,20 +102,38 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('series/{seriesId}/seasons')->group(function () {
         Route::get('/', [SeasonController::class, 'index']);
         Route::post('/', [SeasonController::class, 'store']);
-        Route::put('/', [SeasonController::class, 'update']);
-        Route::delete('/', [SeasonController::class, 'destroy']);
+        Route::put('/{seasonId}', [SeasonController::class, 'update']);
+        Route::delete('/{seasonId}', [SeasonController::class, 'destroy']);
 
         Route::prefix('{seasonId}/episodes')->group(function () {
             Route::post('/', 'EpisodeController@store')->name('episodes.store');
-            Route::put('/', 'EpisodeController@update')->name('episodes.update');
-            Route::delete('/', 'EpisodeController@destroy')->name('episodes.destroy');
+            Route::put('/{episodeId}', 'EpisodeController@update')->name('episodes.update');
+            Route::delete('/{episodeId}', 'EpisodeController@destroy')->name('episodes.destroy');
 
             Route::prefix('{episodeId}/subtitles')->group(function () {
                 Route::post('/', 'SubtitleController@store')->name('episodes.subtitles.store');
                 Route::get('/', 'SubtitleController@index')->name('episodes.subtitles.index');
-                Route::put('/', 'SubtitleController@update')->name('episodes.subtitles.update');
-                Route::delete('/', 'SubtitleController@destroy')->name('episodes.subtitles.destroy');
+                Route::put('/{subtitleId}', 'SubtitleController@update')->name('episodes.subtitles.update');
+                Route::delete('/{subtitleId}', 'SubtitleController@destroy')->name('episodes.subtitles.destroy');
             });
         });
     });
+
+    Route::prefix('media')->group(function () {
+        Route::post('/upload', [MediaController::class, 'upload'])->name('media.upload');
+        Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
+        Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
+    });
+    
+    // Add separate routes for movies and episodes
+    Route::prefix('movies')->group(function () {
+        Route::get('/', [MovieController::class, 'index'])->name('movies.index');
+        Route::get('/{id}', [MovieController::class, 'show'])->name('movies.show');
+    });
+    
+    Route::prefix('series')->group(function () {
+        Route::get('/', [SeriesController::class, 'index'])->name('series.index');
+        Route::get('/{id}', [SeriesController::class, 'show'])->name('series.show');
+    });
+    
 });

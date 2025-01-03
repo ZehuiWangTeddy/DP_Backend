@@ -11,7 +11,6 @@ class UserController extends BaseController
 {
     public function index(Request $request)
     {
-
         $userModel = new User();
 
         $search = $request->get('search');
@@ -25,6 +24,9 @@ class UserController extends BaseController
     public function show($id)
     {
         $user = User::find($id);
+        if (!$user) {
+            return $this->errorResponse('User not found', 404);
+        }
         return $this->dataResponse($user);
     }
 
@@ -44,12 +46,6 @@ class UserController extends BaseController
         return $this->dataResponse($user);
     }
 
-    /**
-     * Remove the specified user.
-     *
-     * @param  int  $id
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
     public function destroy($id)
     {
         $user = User::find($id);
