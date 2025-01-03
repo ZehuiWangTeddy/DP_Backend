@@ -31,7 +31,7 @@ class ProfileController extends Controller
         ]);
 
         $profile = Profile::findOrFail($id);
-        
+
         // Manually set attributes instead of using update()
         foreach ($validated as $key => $value) {
             $profile->{$key} = $value;

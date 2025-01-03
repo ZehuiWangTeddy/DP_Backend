@@ -78,7 +78,8 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
                 'user_id' => $user->user_id,
                 'name' => $user->name,
                 'child_profile' => false,
-                'language' => 'en'
+                'language' => 'en',
+                'date_of_birth' => '1970-01-01'
             ]);
         });
     }
