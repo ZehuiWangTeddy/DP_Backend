@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 
 class WatchHistoryController extends Controller
 {
+    public function index(int $profileId): JsonResponse
+    {
+        $watchHistory = WatchHistory::where('profile_id', $profileId)->get();
+
+        return response()->json($watchHistory, 200);
+    }
+
     public function startMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
     {
         $movie = Movie::findOrFail($movieId);
