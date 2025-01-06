@@ -22,9 +22,7 @@ class EpisodeController extends Controller
         ]);
 
         $season = Season::findOrFail($seasonId);
-        $validated['season_id'] = $seasonId;
-        
-        $episode = Episode::create($validated);
+        $episode = $season->episodes()->create($validated);
 
         return response()->json([
             'message' => 'Episode created successfully',

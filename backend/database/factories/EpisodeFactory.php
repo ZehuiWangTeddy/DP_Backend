@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Helpers\ViewingClassificationHelper;
+use App\Models\Season;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Episode>
@@ -14,7 +15,7 @@ class EpisodeFactory extends Factory
 
     public function definition(): array
     {
-        $seasonId = \App\Models\Season::factory()->create()->id;
+        $seasonId = Season::factory()->create()->season_id;
 
         // If quality for this season doesn't exist yet, generate it
         if (!isset(static::$seasonQualities[$seasonId])) {
