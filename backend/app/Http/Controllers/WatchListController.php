@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 class WatchListController extends Controller
 {
+    public function index(int $profileId): \Illuminate\Http\JsonResponse
+    {
+        $profile = Profile::with(['watchList.movie', 'watchList.episode'])
+            ->findOrFail($profileId);
+
+        return response()->json($profile->watchList, 200);
+    }
+
     public function addMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
     {
         $movie = Movie::findOrFail($movieId);
