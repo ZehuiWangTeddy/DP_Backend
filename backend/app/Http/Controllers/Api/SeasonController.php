@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\BaseController;
 use App\Models\Season;
 use App\Models\Series;
 use Illuminate\Http\Request;
-
-class SeasonController extends Controller
+use Illuminate\Http\JsonResponse;
+class SeasonController extends BaseController
 {
     /**
      * Display a listing of the seasons for a series.

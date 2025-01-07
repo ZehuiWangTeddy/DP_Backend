@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\BaseController;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 
-class MovieController extends Controller
+class MovieController extends BaseController
 {
     private function validateMovie(Request $request, $isUpdate = false)
     {

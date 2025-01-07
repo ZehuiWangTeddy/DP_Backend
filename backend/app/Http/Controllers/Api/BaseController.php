@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Helpers\StanderOutputHelper;
 use Illuminate\Contracts\Pagination\Paginator;
-
+use App\Http\Controllers\Controller;
 class BaseController extends Controller
 {
     public const DEFAULT_CODE = 200;

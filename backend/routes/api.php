@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\WatchListController;
 use App\Http\Controllers\Api\SubtitleController;
 use App\Http\Controllers\Api\SeasonController;
 use App\Http\Controllers\Api\EpisodeController;
+use App\Http\Controllers\Api\MovieController;
+use App\Http\Controllers\Api\SeriesController;
+use App\Http\Controllers\Api\MediaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserRole;
 
@@ -93,7 +96,7 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        Route::apiResource('movies', 'MovieController')->except(['edit', 'create'])->names([
+        Route::apiResource('movies', MovieController::class)->except(['edit', 'create'])->names([
             'index' => 'movies.index',
             'store' => 'movies.store',
             'show' => 'movies.show',
@@ -108,7 +111,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/', [SubtitleController::class, "destroy"])->name('movies.subtitles.destroy');
         });
 
-        Route::apiResource('series', 'SeriesController')->except(['edit', 'create'])->names([
+        Route::apiResource('series', SeriesController::class)->except(['edit', 'create'])->names([
             'index' => 'series.index',
             'store' => 'series.store',
             'show' => 'series.show',

@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\BaseController;
 use Illuminate\Http\Request;
 use App\Models\Subtitle;
 use App\Models\Episode;
 use App\Models\Movie;
 use Illuminate\Support\Facades\Validator;
 
-class SubtitleController extends Controller
+class SubtitleController extends BaseController
 {
     // Store a new subtitle
     public function store(Request $request, $episodeId = null, $id = null)

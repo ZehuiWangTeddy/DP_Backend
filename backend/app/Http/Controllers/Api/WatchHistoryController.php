@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\BaseController;
 use App\Models\Movie;
 use App\Models\Episode;
 use App\Models\WatchHistory;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
-class WatchHistoryController extends Controller
+class WatchHistoryController extends BaseController
 {
     public function index(int $profileId): JsonResponse
     {
@@ -16,7 +18,7 @@ class WatchHistoryController extends Controller
         return response()->json($watchHistory, 200);
     }
 
-    public function startMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
+    public function startMovie(Request $request, $profileId, $movieId): JsonResponse
     {
         $movie = Movie::findOrFail($movieId);
 
@@ -31,7 +33,7 @@ class WatchHistoryController extends Controller
         return response()->json(['message' => 'Movie started successfully'], 200);
     }
 
-    public function finishMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
+    public function finishMovie(Request $request, $profileId, $movieId): JsonResponse
     {
         $watchHistory = WatchHistory::where('profile_id', $profileId)
                                     ->where('media_type', 'movie')
