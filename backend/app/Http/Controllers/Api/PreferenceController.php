@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Preference;
 
-class PreferenceController extends Controller
+class PreferenceController extends BaseController 
 {
     public function index($id)
     {
         $preferences = Preference::where('profile_id', $id)->get();
-        return response()->json($preferences, 200);
+        return $this->dataResponse($preferences, 'Preferences retrieved successfully');
     }
 
     public function store(Request $request, $id)
@@ -22,11 +22,11 @@ class PreferenceController extends Controller
             'minimum_age' => 'required|integer|min:0',
         ]);
 
-        $validatedData['profile_id'] = $id; // Assign profile ID
+        $validatedData['profile_id'] = $id;
 
         $preference = Preference::create($validatedData);
 
-        return response()->json($preference, 201);
+        return $this->dataResponse($preference, 'Preference created successfully');
     }
 
     public function update(Request $request, $id)
@@ -39,18 +39,16 @@ class PreferenceController extends Controller
             'minimum_age' => 'required|integer|min:0',
         ]);
 
-        // Retrieve the specific preference via ID to ensure it belongs to the right profile
         $preference = Preference::where('profile_id', $id)
             ->where('preference_id', $validatedData['preference_id'])
             ->first();
 
         if (!$preference) {
-            return response()->json(['message' => 'Preference not found'], 404);
+            return $this->errorResponse('Preference not found', 404);
         }
 
-        // Update preference with validated data
         $preference->update($validatedData);
 
-        return response()->json($preference, 200);
+        return $this->dataResponse($preference, 'Preference updated successfully');
     }
 }
