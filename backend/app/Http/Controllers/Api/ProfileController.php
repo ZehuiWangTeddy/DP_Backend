@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class ProfileController extends Controller
+class ProfileController extends BaseController
 {
     public function index(): \Illuminate\Http\JsonResponse
     {
         $profiles = Profile::with(['user', 'preference'])->get();
-        return response()->json($profiles);
+        return $this->dataResponse($profiles);
     }
 
     public function show($id): \Illuminate\Http\JsonResponse
     {
         $profile = Profile::with(['user', 'preference'])->findOrFail($id);
-        return response()->json($profile);
+        return $this->dataResponse($profile);
     }
 
     public function update(Request $request, $id): \Illuminate\Http\JsonResponse
@@ -32,14 +32,14 @@ class ProfileController extends Controller
 
         $profile = Profile::findOrFail($id);
 
-        // Manually set attributes instead of using update()
+        // Update attributes manually
         foreach ($validated as $key => $value) {
             $profile->{$key} = $value;
         }
         $profile->save();
 
         $profile->load('user', 'preference');
-        return response()->json(['message' => 'Profile updated successfully', 'profile' => $profile]);
+        return $this->dataResponse($profile, 'Profile updated successfully');
     }
 
     public function destroy($id): \Illuminate\Http\JsonResponse
@@ -47,7 +47,7 @@ class ProfileController extends Controller
         $profile = Profile::findOrFail($id);
         $profile->delete();
 
-        return response()->json(['message' => 'Profile deleted successfully']);
+        return $this->messageResponse('Profile deleted successfully');
     }
 
     public function createProfile(Request $request): \Illuminate\Http\JsonResponse
@@ -57,7 +57,7 @@ class ProfileController extends Controller
         // Check if the user already has 4 profiles
         $profileCount = Profile::where('user_id', $user->user_id)->count();
         if ($profileCount >= 4) {
-            return response()->json(['message' => 'You can only have a maximum of 4 profiles.'], 400);
+            return $this->errorResponse(400, 'You can only have a maximum of 4 profiles.');
         }
 
         // Validate the incoming data
@@ -79,6 +79,6 @@ class ProfileController extends Controller
             'language' => $validated['language'] ?? 'en',
         ]);
 
-        return response()->json(['message' => 'Profile created successfully.', 'profile' => $profile]);
+        return $this->dataResponse($profile, 'Profile created successfully.');
     }
 }

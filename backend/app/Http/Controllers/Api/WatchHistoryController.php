@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Movie;
 use App\Models\Episode;
 use App\Models\WatchHistory;
 use Illuminate\Http\Request;
 
-class WatchHistoryController extends Controller
+class WatchHistoryController extends BaseController
 {
-    public function index(int $profileId): JsonResponse
+    public function index(int $profileId)
     {
         $watchHistory = WatchHistory::where('profile_id', $profileId)->get();
 
-        return response()->json($watchHistory, 200);
+        return $this->dataResponse($watchHistory, 'Watch history retrieved successfully');
     }
 
-    public function startMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
+    public function startMovie(Request $request, $profileId, $movieId)
     {
         $movie = Movie::findOrFail($movieId);
 
@@ -28,10 +28,10 @@ class WatchHistoryController extends Controller
             'end_time' => null,
         ]);
 
-        return response()->json(['message' => 'Movie started successfully'], 200);
+        return $this->messageResponse('Movie started successfully');
     }
 
-    public function finishMovie(Request $request, $profileId, $movieId): \Illuminate\Http\JsonResponse
+    public function finishMovie(Request $request, $profileId, $movieId)
     {
         $watchHistory = WatchHistory::where('profile_id', $profileId)
                                     ->where('media_type', 'movie')
@@ -43,10 +43,10 @@ class WatchHistoryController extends Controller
             'end_time' => now(),
         ]);
 
-        return response()->json(['message' => 'Movie finished successfully'], 200);
+        return $this->messageResponse('Movie finished successfully');
     }
 
-    public function startEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId): \Illuminate\Http\JsonResponse
+    public function startEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId)
     {
         $episode = Episode::findOrFail($episodeId);
 
@@ -60,10 +60,10 @@ class WatchHistoryController extends Controller
             'end_time' => null,
         ]);
 
-        return response()->json(['message' => 'Episode started successfully'], 200);
+        return $this->messageResponse('Episode started successfully');
     }
 
-    public function finishEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId): \Illuminate\Http\JsonResponse
+    public function finishEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId)
     {
         $watchHistory = WatchHistory::where('profile_id', $profileId)
                                     ->where('media_type', 'episode')
@@ -75,6 +75,6 @@ class WatchHistoryController extends Controller
             'end_time' => now(),
         ]);
 
-        return response()->json(['message' => 'Episode finished successfully'], 200);
+        return $this->messageResponse('Episode finished successfully');
     }
 }
