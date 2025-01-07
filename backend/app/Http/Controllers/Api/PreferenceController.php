@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Models\Preference;
 
-class PreferenceController extends BaseController
+class PreferenceController extends BaseController 
 {
     public function index($id)
     {
