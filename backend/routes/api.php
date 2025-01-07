@@ -60,9 +60,11 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('profiles')->group(function () {
         Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
         Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
+        Route::post('/{user_id}', [ProfileController::class, "store"])->name('profiles.store');
         Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
         Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
 
+        
         Route::prefix('{id}/preferences')->group(function () {
             Route::get('/', [PreferenceController::class, "index"])->name('preferences.index');
             Route::post('/', [PreferenceController::class, "store"])->name('preferences.store');

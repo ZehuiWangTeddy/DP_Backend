@@ -37,7 +37,7 @@ class ProfileController extends BaseController
     public function show($id): JsonResponse
     {
         $profile = Profile::where('user_id', Auth::id())
-            ->where('id', $id)
+            ->where('profile_id', $id)
             ->first();
 
         if (!$profile) {
@@ -69,7 +69,7 @@ class ProfileController extends BaseController
     public function update(Request $request, $id): JsonResponse
     {
         $profile = Profile::where('user_id', Auth::id())
-            ->where('id', $id)
+            ->where('profile_id', $id)
             ->first();
 
         if (!$profile) {
@@ -110,7 +110,7 @@ class ProfileController extends BaseController
     public function destroy($id): JsonResponse
     {
         $profile = Profile::where('user_id', Auth::id())
-            ->where('id', $id)
+            ->where('profile_id', $id)
             ->first();
 
         if (!$profile) {
@@ -132,6 +132,41 @@ class ProfileController extends BaseController
                 'message' => 'Profile deleted successfully'
             ],
             200
+        );
+    }
+
+    /**
+     * Store a new profile for the authenticated user.
+     *
+     * @param Request $request
+     * @param int $user_id
+     * @return JsonResponse
+     */
+    public function store(Request $request, $user_id): JsonResponse
+    {
+        // Validate the request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'avatar' => 'nullable|string|max:255',
+            'is_kids' => 'nullable|boolean',
+            'language' => 'required|string|max:10',
+        ]);
+
+        // Create a new profile
+        $profile = Profile::create([
+            'user_id' => $user_id,
+            'name' => $validated['name'],
+            'avatar' => $validated['avatar'] ?? null,
+            'is_kids' => $validated['is_kids'] ?? false,
+            'language' => $validated['language'],
+        ]);
+
+        return response()->json(
+            [
+                'data' => $profile,
+                'message' => 'Profile created successfully'
+            ],
+            201
         );
     }
 }
