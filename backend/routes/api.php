@@ -5,12 +5,12 @@ use App\Http\Controllers\Api\PreferenceController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SubscriptionController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WatchHistoryController;
-use App\Http\Controllers\WatchListController;
-use App\Http\Controllers\SubtitleController;
-use App\Http\Controllers\SeasonController;
-use App\Http\Controllers\EpisodeController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\WatchHistoryController;
+use App\Http\Controllers\Api\WatchListController;
+use App\Http\Controllers\Api\SubtitleController;
+use App\Http\Controllers\Api\SeasonController;
+use App\Http\Controllers\Api\EpisodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserRole;
 
