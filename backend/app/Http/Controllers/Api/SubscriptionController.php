@@ -17,15 +17,6 @@ class SubscriptionController extends BaseController
         return $this->paginationResponse($Subscriptions);
     }
 
-//    protected function findSubscriptionOrFail($id)
-//    {
-//        $subscription = Subscription::find($id);
-//        if (!$subscription) {
-//            abort(404, 'Subscription Not found');
-//        }
-//        return $subscription;
-//    }
-
     public function store(Request $request)
     {
 
@@ -77,85 +68,13 @@ class SubscriptionController extends BaseController
         }
     }
 
-    public function payment($id)
+    public function show($id)
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
-            return $this->errorResponse('subscription not found', 404);
+            return $this->errorResponse('Subscription not found', 404);
         }
-        return $this->dataResponse($subscription);
-    }
-
-    public function updateStartDate(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $validated = $request->validate([
-            'start_date' => [
-                'sometimes',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($subscription) {
-                    if ($value > now()->format('Y-m-d') ) {
-                        $fail('Start date cannot be later than today');
-                    }
-                }
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription);
-    }
-
-    public function updateEndDate(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $startDate = $subscription->start_date;
-
-        $validated = $request->validate([
-            'end_date' => [
-                'sometimes',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($startDate) {
-                    if ($startDate && $value < $startDate) {
-                        $fail('end date must be after start date');
-                    }
-                },
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription);
-    }
-
-    public function updatePayment_method(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $validated = $request->validate([
-            'payment_method' => [
-                'sometimes',
-                'string',
-                function ($attribute, $value, $fail) use ($subscription) {
-                    $allowedMethods = ['PayPal', 'Visa', 'MasterCard', 'Apple Pay', 'Google Pay', 'iDEAL'];
-                    if ($value && !in_array($value, $allowedMethods)) {
-                        $fail('The selected payment method is invalid. Allowed methods are: ' . implode(', ', $allowedMethods));
-                    }
-                }
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription);
+        return $this->dataResponse($subscription, "Subscription payment details retrieved successfully");
     }
 
     public function update(Request $request, $id)
@@ -180,10 +99,10 @@ class SubscriptionController extends BaseController
         // Start database transaction
         DB::beginTransaction();
         try {
-            // Create the new subscription record in the database
+            // Update the subscription record in the database
             $subscription->update($validated->toArray());
 
-            // Commit the transaction after successful user creation
+            // Commit the transaction after successful update
             DB::commit();
 
             // Return the response with subscription data
@@ -196,7 +115,7 @@ class SubscriptionController extends BaseController
 
             Log::error($e);
             // Return error response in case of failure
-            return $this->errorResponse(500, 'Failed to add new subscription. Please try again later.');
+            return $this->errorResponse(500, 'Failed to update subscription. Please try again later.');
         }
     }
 
@@ -207,6 +126,6 @@ class SubscriptionController extends BaseController
             return $this->errorResponse('Subscription not found', 404);
         }
         $subscription->delete();
-        return $this->messageResponse('Subscription deleted successfully.');
+        return $this->messageResponse('Subscription deleted successfully.', 200);
     }
 }

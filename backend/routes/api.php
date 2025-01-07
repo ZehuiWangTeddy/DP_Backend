@@ -13,47 +13,58 @@ use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\EpisodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserRole;
+use App\Http\Controllers\MovieController;
+use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MediaController;
 
-Route::get('login', function(){
-    return response()->json([
-        'meta' => [
-            'code' => 401,
-            'message' => 'Unauthenticated.',
-        ],
-        'data' => [],
-    ]);
-})->name('login');
+Route::prefix('auth')->group(function () {
+    Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
+    Route::post('/register', [AuthController::class, "register"])->name('auth.register');
+    Route::post('/login', [AuthController::class, "login"])->name('auth.login');
+    Route::post('/send-reset-password-email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:60,1');
+    Route::post('/reset-password-with-forgot-email', [AuthController::class, 'resetPasswordWithForgotEmail'])->middleware('throttle:60,1')->name('password.reset');
+    Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->middleware("auth:api")->name('password.resetPassword');
+    Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout')->middleware("auth:api");
+});
 
-Route::prefix('v1')->group(function () {
+Route::middleware('auth:api')->group(function () {
 
-    Route::prefix('auth')->group(function () {
-        Route::post('/register', [AuthController::class, "register"])->name('auth.register');
-        Route::post('/login', [AuthController::class, "login"])->name('auth.login');
-        Route::post('/send-reset-password-email', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:60,1');
-        Route::post('/reset-password-with-forgot-email', [AuthController::class, 'resetPasswordWithForgotEmail'])->middleware('throttle:60,1')->name('password.reset');
-        Route::post('/password-reset', action: [AuthController::class, "resetPassword"])->middleware("auth:api")->name('password.resetPassword');
-        Route::post('/logout', [AuthController::class, "logout"])->name('auth.logout')->middleware("auth:api");
-//        Route::post('/verification', 'AuthController@verify')->name('auth.verification');
-//        Route::post('/invitation', 'AuthController@invite')->name('auth.invitation');
+    Route::prefix('users')->middleware(["auth:api", CheckUserRole::class])->group(function () {
+        Route::get('/', [UserController::class, "index"])->name('users.index');
+        Route::get('/{id}', [UserController::class, "show"])->name('users.show');
+        Route::put('/{id}', [UserController::class, "update"])->name('users.update');
+        Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
     });
 
-    Route::middleware('auth:api')->group(function () {
+    Route::prefix('subscriptions')->middleware(["auth:api", CheckUserRole::class])->group(function () {
+        Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
+        Route::get('/{id}', [SubscriptionController::class, "show"])->name('subscription.payment');
+        Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
+        Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
+        Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
+    });
 
-        Route::prefix('users')->middleware(["auth:api", CheckUserRole::class])->group(function () {
-            Route::get('/', [UserController::class, "index"])->name('users.index');
-            Route::get('/{id}', [UserController::class, "show"])->name('users.show');
-            Route::put('/{id}', [UserController::class, "update"])->name('users.update');
-            Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
+    Route::prefix('profiles')->group(function () {
+        Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
+        Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
+        Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
+        Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
+        Route::post('/{id}', [ProfileController::class, "createProfile"])->name('profiles.create');
+
+        Route::prefix('{id}/preferences')->group(function () {
+            Route::get('/', 'PreferenceController@index')->name('preferences.index');
+            Route::post('/', 'PreferenceController@store')->name('preferences.store');
+            Route::put('/', 'PreferenceController@update')->name('preferences.update');
         });
 
-        Route::prefix('subscriptions')->group(function () {
-            Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
-            Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
-            Route::put('/{id}', [SubscriptionController::class, "update"])->name('subscription.update');
-            Route::delete('/{id}', [SubscriptionController::class, "destroy"])->name('subscription.destroy');
-//            Route::put('/{id}/start-date', [SubscriptionController::class, "updateStartDate"])->name('subscription.updateStartDate');
-//            Route::put('/{id}/end-date', [SubscriptionController::class, "updateEndDate"])->name('subscription.updateEndDate');
-//            Route::put('/{id}/payment-method', [SubscriptionController::class, "updatePaymentMethod"])->name('subscription.updatePaymentMethod');
+        Route::prefix('{id}/watch-history')->group(function () {
+            Route::get('/', 'WatchHistoryController@index')->name('watchHistory.index');
+            Route::post('/movie/{movieId}/start', 'WatchHistoryController@startMovie')->name('watchHistory.startMovie');
+            Route::post('/movie/{movieId}/finish', 'WatchHistoryController@finishMovie')->name('watchHistory.finishMovie');
+            Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/start', 'WatchHistoryController@startEpisode')->name('watchHistory.startEpisode');
+            Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/finish', 'WatchHistoryController@finishEpisode')->name('watchHistory.finishEpisode');
         });
 
         Route::prefix('profiles')->group(function () {
@@ -134,6 +145,23 @@ Route::prefix('v1')->group(function () {
                 });
             });
         });
-
     });
+
+    Route::prefix('media')->group(function () {
+        Route::post('/upload', [MediaController::class, 'upload'])->name('media.upload');
+        Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
+        Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
+    });
+    
+    // Add separate routes for movies and episodes
+    Route::prefix('movies')->group(function () {
+        Route::get('/', [MovieController::class, 'index'])->name('movies.index');
+        Route::get('/{id}', [MovieController::class, 'show'])->name('movies.show');
+    });
+    
+    Route::prefix('series')->group(function () {
+        Route::get('/', [SeriesController::class, 'index'])->name('series.index');
+        Route::get('/{id}', [SeriesController::class, 'show'])->name('series.show');
+    });
+    
 });

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title', 255);
             $table->time('duration');
             $table->date('release_date');
-            $table->enum('quality', ['SD', 'HD', 'UHD']);
+            $table->json('quality')->default(json_encode([])); // because have multiple quality
             $table->json('available_languages')->default(json_encode(['English']));
             $table->string('viewing_classification'); // For age restrictions (e.g., 12+)
         });

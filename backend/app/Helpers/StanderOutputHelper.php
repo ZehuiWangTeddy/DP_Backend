@@ -18,7 +18,7 @@ class StanderOutputHelper
             'data' => $data,
         ];
 
-        return self::send($data);
+        return self::send($data, $code);
     }
 
     public static function paginationResponse($code, $message, $data): Response
@@ -36,19 +36,22 @@ class StanderOutputHelper
             'data' => $data->items(),
         ];
 
-        return self::send($data);
+        return self::send($data, $code);
     }
 
-    private static function send($data): Response
+    private static function send($data, $code): Response
     {
         // if header accept xml
         $accept = request()->header('accept');
-        if (strpos($accept, 'xml') !== false) {
+        // if input is xml
+        $isxml = request()->isXmlHttpRequest() || request()->header('Content-Type') == 'application/xml';
+
+        if ((strpos($accept, 'xml') !== false) || $isxml) {
             $result = ArrayToXml::convert($data);
 
-            return new Response($result);
+            return new Response($result, $code);
         }
 
-        return response()->json($data);
+        return response()->json($data, $code);
     }
 }

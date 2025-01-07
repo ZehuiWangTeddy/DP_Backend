@@ -7,104 +7,69 @@ use Illuminate\Http\Request;
 
 class MovieController extends Controller
 {
-    /**
-     * Display a listing of the movies.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    private function validateMovie(Request $request, $isUpdate = false)
+    {
+        $rules = [
+            'title' => $isUpdate ? 'sometimes|string|max:100' : 'required|string|max:100',
+            'duration' => $isUpdate ? 'sometimes|regex:/^\d{2}:\d{2}:\d{2}$/' : 'required|regex:/^\d{2}:\d{2}:\d{2}$/',
+            'release_date' => $isUpdate ? 'sometimes|date' : 'required|date',
+            'quality' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'age_restriction' => $isUpdate ? 'sometimes|integer|min:0' : 'required|integer|min:0',
+            'genre' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
+            'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
+        ];
+
+        return $request->validate($rules);
+    }
+
+    private function encodeFields($data)
+    {
+        foreach (['quality', 'genre', 'viewing_classification', 'available_languages'] as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = json_encode($data[$field]);
+            }
+        }
+        return $data;
+    }
+
     public function index()
     {
         $movies = Movie::all();
-        return response()->json($movies, 200);
+        return response()->json(['data' => $movies, 'message' => 'Movies retrieved successfully'], 200);
     }
 
-    /**
-     * Store a newly created movie in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:100',
-            'duration' => ['required', 'regex:/^\d{2}:\d{2}:\d{2}$/'],
-            'release_date' => 'required|date',
-            'quality' => 'required|array',
-            'age_restriction' => 'required|integer|min:0',
-            'genre' => 'required|array',
-            'viewing_classification' => 'required|string',
-            'available_languages' => 'required|array',
-        ]);
-
-        // Encode array fields to JSON
-        $validated['quality'] = json_encode($validated['quality']);
-        $validated['genre'] = json_encode($validated['genre']);
-        $validated['available_languages'] = json_encode($validated['available_languages']);
-
+        $validated = $this->validateMovie($request);
+        $validated = $this->encodeFields($validated);
+        
         $movie = Movie::create($validated);
-        return response()->json($movie, 201);
+        return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
     }
 
-    /**
-     * Display the specified movie.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function show($id)
     {
         $movie = Movie::findOrFail($id);
-        return response()->json($movie, 200);
+        return response()->json(['data' => $movie, 'message' => 'Movie retrieved successfully'], 200);
     }
 
-    /**
-     * Update the specified movie in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function update(Request $request, $id)
     {
         $movie = Movie::findOrFail($id);
 
-        $validated = $request->validate([
-            'title' => 'sometimes|string|max:100',
-            'duration' => ['sometimes', 'regex:/^\d{2}:\d{2}:\d{2}$/'],
-            'release_date' => 'sometimes|date',
-            'quality' => 'sometimes|array',
-            'age_restriction' => 'sometimes|integer|min:0',
-            'genre' => 'sometimes|array',
-            'viewing_classification' => 'sometimes|string',
-            'available_languages' => 'sometimes|array',
-        ]);
-
-        // Encode array fields to JSON if they are present
-        if (isset($validated['quality'])) {
-            $validated['quality'] = json_encode($validated['quality']);
-        }
-        if (isset($validated['genre'])) {
-            $validated['genre'] = json_encode($validated['genre']);
-        }
-        if (isset($validated['available_languages'])) {
-            $validated['available_languages'] = json_encode($validated['available_languages']);
-        }
+        $validated = $this->validateMovie($request, true);
+        $validated = $this->encodeFields($validated);
 
         $movie->update($validated);
-        return response()->json($movie, 200);
+        return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
     }
 
-    /**
-     * Remove the specified movie from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
         $movie = Movie::findOrFail($id);
         $movie->delete();
+
         return response()->json(['message' => 'Movie deleted successfully'], 200);
     }
 }

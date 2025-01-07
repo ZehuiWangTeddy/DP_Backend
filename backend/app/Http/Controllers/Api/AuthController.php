@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB; // Add DB facade for transaction handling
-use PHPOpenSourceSaver\JWTAuth\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -37,14 +37,6 @@ class AuthController extends BaseController
         // Validate incoming request
         $validated = $request->validated();
 
-        // Validate received referral code (if provided)
-        if (!empty($validated['received_referral_code'])) {
-            $validReferralCode = User::where('sent_referral_code', $validated['received_referral_code'])->exists();
-            if (!$validReferralCode) {
-                return $this->errorResponse(400, 'Invalid referral code');
-            }
-        }
-
         // Start database transaction
         DB::beginTransaction();
 
@@ -65,31 +57,33 @@ class AuthController extends BaseController
                 'has_discount' => $hasDiscount,
             ]);
 
+            // Load the profiles relationship and get the first profile
+            $user->load('profiles');
+            $profile = $user->profiles->first();
+
             // Commit the transaction after successful user creation
             DB::commit();
 
             // Generate JWT token for the user
-            $token = auth()->login($user);
+            $token = JWTAuth::fromUser($user);
 
-            // Return the response with token and user data
+            // Return the response with token, user data, and profile
             return $this->dataResponse([
                 'user' => $user->only(['user_id', 'name', 'email', 'address', 'user_role']),
+                'profiles' => $user->profiles, // Include all profiles in the response
                 'user_referral_code' => $user->sent_referral_code,
                 'received_referral_code' => $user->received_referral_code,
                 'has_discount' => $user->has_discount,
                 'access_token' => [
                     'token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => Auth::factory()->getTTL() * 60, // Token expiration
+                    'expires_in' => Auth::factory()->getTTL() * 60,
                 ],
             ], "Registration successful");
         } catch (Exception $e) {
             // If anything goes wrong, roll back the transaction
             DB::rollBack();
-
             Log::error($e);
-            // Return error response in case of failure
-
             return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }
     }
@@ -101,7 +95,7 @@ class AuthController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string',
-            'password' => 'required|string',
+            'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -147,17 +141,29 @@ class AuthController extends BaseController
         // Retrieve authenticated user
         $user = Auth::user();
 
-        // Reset failed login attempts on successful login
-        $user->update(['failed_login_attempts' => 0, 'active' => true, 'trial_available' => true]);
+        // Debugging: Check if $user is an instance of User
+        if (!($user instanceof User)) {
+            return $this->errorResponse(500, 'User instance not found');
+        }
 
-        return $this->StanderResponse(200, 'Login successful', [
+        // Reset failed login attempts on successful login
+        $user->failed_login_attempts = 0;
+        $user->active = true;
+        $user->trial_available = true;
+
+        // Save the user
+        if (!$user->save()) {
+            return $this->errorResponse(500, 'Failed to save user data');
+        }
+
+        return $this->dataResponse([
             'user' => Auth::user(),
             'access_token' => [
                 'token' => $token,
                 'token_type' => 'bearer',
                 'expires_in' => Auth::factory()->getTTL() * 60,
             ],
-        ]);
+        ], 'Login successful');
     }
 
     /**
@@ -171,7 +177,7 @@ class AuthController extends BaseController
             // Invalidate the token to log the user out
             Auth::invalidate(true);
 
-            return $this->messageResponse('Successfully logged out');
+            return $this->messageResponse('Successfully logged out', 200);
         } catch (Exception $e) {
             // Handle exception if token invalidation fails
             return $this->errorResponse(500, "Failed to logout");
@@ -203,7 +209,7 @@ class AuthController extends BaseController
 
         // Return success or failure response
         if ($response == Password::RESET_LINK_SENT) {
-            return $this->messageResponse("Password reset link sent successfully.");
+            return $this->messageResponse("Password reset link sent successfully.", 200);
         }
 
         return $this->errorResponse(400, "Failed to send password reset link. Please try again.");
@@ -237,7 +243,7 @@ class AuthController extends BaseController
         );
 
         return $status === Password::PASSWORD_RESET
-            ? $this->messageResponse("Password reset successfully.")
+            ? $this->messageResponse("Password reset successfully.", 200)
             : $this->errorResponse(400, "Failed to reset password. Please try again.");
     }
 
@@ -269,12 +275,25 @@ class AuthController extends BaseController
             return $this->errorResponse(400, "Invalid password. Please try again.");
         }
 
+        // Retrieve authenticated user
+        $user = Auth::user();
+
+        // Debugging: Check if $user is an instance of User
+        if (!($user instanceof User)) {
+            return $this->errorResponse(500, 'User instance not found');
+        }
+
         // Perform password reset
         $user->password = Hash::make($password); // Update password
         if ($user->save()) {
-            return $this->messageResponse("Password reset successfully.");
+            return $this->messageResponse("Password reset successfully.", 200);
         }
 
         return $this->errorResponse(400, "Failed to reset password. Please try again.");
+    }
+
+    public function loginFailed()
+    {
+        return $this->errorResponse(401, 'Unauthenticated');
     }
 }

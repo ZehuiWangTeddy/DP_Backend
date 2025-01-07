@@ -10,6 +10,7 @@ class PreferenceController extends BaseController
     public function index($id)
     {
         $preferences = Preference::where('profile_id', $id)->get();
+
         return $this->dataResponse($preferences, 'Preferences retrieved successfully');
     }
 

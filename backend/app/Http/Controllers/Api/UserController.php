@@ -11,13 +11,22 @@ class UserController extends BaseController
 {
     public function index(Request $request)
     {
-        $users = User::paginate();
-        return $this->paginationResponse($users);
+        $userModel = new User();
+
+        $search = $request->get('search');
+        if ($search) {
+            $userModel = $userModel->where('name', 'like', '%' . $search . '%');
+        }
+
+        return $this->paginationResponse($userModel->paginate(request()->get('per_page', 10)));
     }
 
     public function show($id)
     {
         $user = User::find($id);
+        if (!$user) {
+            return $this->errorResponse('User not found', 404);
+        }
         return $this->dataResponse($user);
     }
 
@@ -37,12 +46,6 @@ class UserController extends BaseController
         return $this->dataResponse($user);
     }
 
-    /**
-     * Remove the specified user.
-     *
-     * @param  int  $id
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
     public function destroy($id)
     {
         $user = User::find($id);
