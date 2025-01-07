@@ -17,6 +17,10 @@ use App\Http\Controllers\Api\MediaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserRole;
 
+Route::get('/test', function () {
+    return response()->json(['message' => 'API is working']);
+});
+
 Route::get('login', function(){
     return response()->json([
         'meta' => [
