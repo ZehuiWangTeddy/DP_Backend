@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use App\Models\Subtitle;
+use App\Http\Controllers\Controller;
 use App\Models\Episode;
 use App\Models\Movie;
+use App\Models\Subtitle;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class SubtitleController extends Controller

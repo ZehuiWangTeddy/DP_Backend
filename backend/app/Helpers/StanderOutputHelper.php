@@ -44,12 +44,16 @@ class StanderOutputHelper
         // if header accept xml
         $accept = request()->header('accept');
         // if input is xml
-        $isxml = request()->isXmlHttpRequest() || request()->header('Content-Type') == 'application/xml';
+        $isxml = request()->isXmlHttpRequest() || request()->header('Content-Type') === 'application/xml';
+
+        if ($isxml && strpos($accept, 'xml') === false) {
+            return response()->json($data, $code);
+        }
 
         if ((strpos($accept, 'xml') !== false) || $isxml) {
             $result = ArrayToXml::convert($data);
 
-            return new Response($result, $code);
+            return new Response($result, $code, ['Content-Type' => 'application/xml']);
         }
 
         return response()->json($data, $code);

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Episode;
 use App\Models\Season;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class EpisodeController extends Controller
 {
@@ -60,4 +60,4 @@ class EpisodeController extends Controller
             'message' => 'Episode deleted successfully'
         ], 204);
     }
-} 
+}

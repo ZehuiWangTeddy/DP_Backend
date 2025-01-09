@@ -1,25 +1,22 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EpisodeController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\PreferenceController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RecommendationController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\SeasonController;
 use App\Http\Controllers\Api\SubscriptionController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WatchHistoryController;
-use App\Http\Controllers\WatchListController;
-use App\Http\Controllers\SubtitleController;
-use App\Http\Controllers\SeasonController;
-use App\Http\Controllers\EpisodeController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\SubtitleController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WatchHistoryController;
+use App\Http\Controllers\Api\WatchListController;
 use App\Http\Middleware\CheckUserRole;
-use App\Http\Controllers\MovieController;
-use App\Http\Controllers\SeriesController;
-use App\Http\Controllers\SeasonController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MediaController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
+
     Route::get('login', [AuthController::class, 'loginFailed'])->name('login'); // response for login failed
     Route::post('/register', [AuthController::class, "register"])->name('auth.register');
     Route::post('/login', [AuthController::class, "login"])->name('auth.login');
@@ -31,14 +28,14 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:api')->group(function () {
 
-    Route::prefix('users')->middleware(["auth:api", CheckUserRole::class])->group(function () {
+    Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, "index"])->name('users.index');
         Route::get('/{id}', [UserController::class, "show"])->name('users.show');
         Route::put('/{id}', [UserController::class, "update"])->name('users.update');
         Route::delete('/{id}', [UserController::class, "destroy"])->name('users.destroy');
     });
 
-    Route::prefix('subscriptions')->middleware(["auth:api", CheckUserRole::class])->group(function () {
+    Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, "index"])->name('subscription.index');
         Route::get('/{id}', [SubscriptionController::class, "show"])->name('subscription.payment');
         Route::post('/', [SubscriptionController::class, "store"])->name('subscription.store');
@@ -152,16 +149,16 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
         Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
     });
-    
+
     // Add separate routes for movies and episodes
     Route::prefix('movies')->group(function () {
         Route::get('/', [MovieController::class, 'index'])->name('movies.index');
         Route::get('/{id}', [MovieController::class, 'show'])->name('movies.show');
     });
-    
+
     Route::prefix('series')->group(function () {
         Route::get('/', [SeriesController::class, 'index'])->name('series.index');
         Route::get('/{id}', [SeriesController::class, 'show'])->name('series.show');
     });
-    
+
 });

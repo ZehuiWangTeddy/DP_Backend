@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Movie;
+use App\Http\Controllers\Controller;
 use App\Models\Episode;
+use App\Models\Movie;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 

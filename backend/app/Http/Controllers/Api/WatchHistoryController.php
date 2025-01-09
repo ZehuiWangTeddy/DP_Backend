@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Movie;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\JsonResponse;
 use App\Models\Episode;
+use App\Models\Movie;
 use App\Models\WatchHistory;
 use Illuminate\Http\Request;
 
