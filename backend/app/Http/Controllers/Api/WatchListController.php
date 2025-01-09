@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Movie;
+use App\Http\Controllers\BaseController;
 use App\Models\Episode;
+use App\Models\Movie;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 
-class WatchListController extends Controller
+class WatchListController extends BaseController
 {
     public function index(int $profileId): \Illuminate\Http\JsonResponse
     {

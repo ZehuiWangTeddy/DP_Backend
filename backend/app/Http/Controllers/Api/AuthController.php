@@ -6,18 +6,19 @@ use App\Http\Controllers\BaseController;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB; // Add DB facade for transaction handling
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Exception;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+
+// Add DB facade for transaction handling
 
 class AuthController extends BaseController
 {
