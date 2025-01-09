@@ -5,10 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Models\Episode;
 use App\Models\Season;
+use App\Models\Series;
 use Illuminate\Http\Request;
 
 class EpisodeController extends BaseController
 {
+    public function index($seriesId, $seasonId)
+    {
+        $season = Season::where('series_id', $seriesId)
+            ->where('season_id', $seasonId)
+            ->firstOrFail();
+
+        $episodes = $season->episodes;
+
+        return response()->json(['data' => $episodes, 'message' => 'Episode retrieved successfully'], 200);
+    }
     // Store a new episode
     public function store(Request $request, $seriesId, $seasonId)
     {

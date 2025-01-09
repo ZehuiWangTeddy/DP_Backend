@@ -16,7 +16,7 @@ class SeasonController extends BaseController
     {
         $series = Series::findOrFail($seriesId);
         $seasons = $series->seasons;
-        return response()->json($seasons, 200);
+        return response()->json(['data' => $series, 'message' => 'Series retrieved successfully'], 200);
     }
 
     /**
@@ -48,8 +48,8 @@ class SeasonController extends BaseController
         ]);
 
         $season = Season::where('series_id', $seriesId)
-                        ->where('season_id', $seasonId)
-                        ->firstOrFail();
+            ->where('season_id', $seasonId)
+            ->firstOrFail();
         $season->update($validated);
 
         return response()->json($season, 200);
@@ -61,8 +61,8 @@ class SeasonController extends BaseController
     public function destroy($seriesId, $seasonId)
     {
         $season = Season::where('series_id', $seriesId)
-                        ->where('season_id', $seasonId)
-                        ->firstOrFail();
+            ->where('season_id', $seasonId)
+            ->firstOrFail();
         $season->delete();
 
         return response()->json(['message' => 'Season deleted successfully'], 200);
