@@ -6,11 +6,13 @@ use App\Http\Controllers\BaseController;
 use App\Models\Preference;
 use Illuminate\Http\Request;
 
-class PreferenceController extends BaseController
+
+class PreferenceController extends BaseController 
 {
     public function index($id)
     {
         $preferences = Preference::where('profile_id', $id)->get();
+
         return $this->dataResponse($preferences, 'Preferences retrieved successfully');
     }
 

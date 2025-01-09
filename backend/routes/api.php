@@ -94,7 +94,6 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/movie', [RecommendationController::class, "removeMovie"])->name('recommendations.removeMovie');
             Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
         });
-    });
 
     Route::apiResource('movies', MovieController::class)->except(['edit', 'create'])->names([
         'index' => 'movies.index',
