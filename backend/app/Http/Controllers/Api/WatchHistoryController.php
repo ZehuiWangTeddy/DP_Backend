@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
-use App\Models\Movie;
+use App\Http\Controllers\BaseController;
 use App\Models\Episode;
+use App\Models\Movie;
 use App\Models\WatchHistory;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WatchHistoryController extends BaseController
 {

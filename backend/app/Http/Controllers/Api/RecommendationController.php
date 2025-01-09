@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\WatchHistory;
-use App\Models\Preference;
+use App\Http\Controllers\BaseController;
 use App\Models\Movie;
+use App\Models\Preference;
 use App\Models\Series;
-use Illuminate\Http\Request;
+use App\Models\WatchHistory;
 
-class RecommendationController extends BaseController 
+class RecommendationController extends BaseController
 {
     public function index($id)
     {

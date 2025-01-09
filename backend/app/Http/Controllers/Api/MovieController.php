@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
+use App\Http\Controllers\BaseController;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 
@@ -44,7 +44,7 @@ class MovieController extends BaseController
     {
         $validated = $this->validateMovie($request);
         $validated = $this->encodeFields($validated);
-        
+
         $movie = Movie::create($validated);
         return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
     }

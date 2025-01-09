@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
-use Illuminate\Http\Request;
-use App\Models\Subtitle;
+use App\Http\Controllers\BaseController;
 use App\Models\Episode;
 use App\Models\Movie;
+use App\Models\Subtitle;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class SubtitleController extends BaseController

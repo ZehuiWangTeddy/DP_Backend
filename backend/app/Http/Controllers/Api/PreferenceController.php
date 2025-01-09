@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\BaseController;
 use App\Models\Preference;
+use Illuminate\Http\Request;
 
-class PreferenceController extends BaseController 
+class PreferenceController extends BaseController
 {
     public function index($id)
     {
@@ -17,7 +18,7 @@ class PreferenceController extends BaseController
     {
         $validatedData = $request->validate([
             'content_type' => 'required|string|max:255',
-            'content_preference' => 'nullable|string|max:255', 
+            'content_preference' => 'nullable|string|max:255',
             'genre' => 'required|string|max:255',
             'minimum_age' => 'required|integer|min:0',
         ]);
@@ -34,7 +35,7 @@ class PreferenceController extends BaseController
         $validatedData = $request->validate([
             'preference_id' => 'required|integer',
             'content_type' => 'required|string|max:255',
-            'content_preference' => 'nullable|string|max:255', 
+            'content_preference' => 'nullable|string|max:255',
             'genre' => 'required|string|max:255',
             'minimum_age' => 'required|integer|min:0',
         ]);

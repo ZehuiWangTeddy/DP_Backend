@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
-use App\Models\Movie;
+use App\Http\Controllers\BaseController;
 use App\Models\Episode;
+use App\Models\Movie;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
+use App\Http\Controllers\BaseController;
+use App\Models\Episode;
+use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Movie;
-use App\Models\Episode;
 
 class MediaController extends BaseController
 {

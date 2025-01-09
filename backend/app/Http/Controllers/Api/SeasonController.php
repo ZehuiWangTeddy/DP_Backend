@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\BaseController;
+use App\Http\Controllers\BaseController;
 use App\Models\Season;
 use App\Models\Series;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+
 class SeasonController extends BaseController
 {
     /**
@@ -25,7 +25,7 @@ class SeasonController extends BaseController
     public function store(Request $request, $seriesId)
     {
         $series = Series::findOrFail($seriesId);
-        
+
         $validated = $request->validate([
             'season_number' => 'required|integer|min:1',
             'release_date' => 'required|date',
@@ -64,7 +64,7 @@ class SeasonController extends BaseController
                         ->where('season_id', $seasonId)
                         ->firstOrFail();
         $season->delete();
-    
+
         return response()->json(['message' => 'Season deleted successfully'], 200);
     }
-} 
+}

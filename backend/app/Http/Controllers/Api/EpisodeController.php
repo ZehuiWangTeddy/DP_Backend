@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\BaseController;
 use App\Models\Episode;
 use App\Models\Season;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Controllers\Api\BaseController;
 
 class EpisodeController extends BaseController
 {
