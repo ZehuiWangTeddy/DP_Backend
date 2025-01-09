@@ -153,14 +153,14 @@ Route::middleware('auth:api')->group(function () {
         Route::prefix('/{seriesId}/seasons')->group(function () {
             Route::post('/', [SeasonController::class, "store"])->name('seasons.store');
             Route::get('/', [SeasonController::class, "index"])->name('seasons.index');
-            Route::put('/', [SeasonController::class, "update"])->name('seasons.update');
-            Route::delete('/', [SeasonController::class, "destroy"])->name('seasons.destroy');
+            Route::put('/{id}', [SeasonController::class, "update"])->name('seasons.update');
+            Route::delete('/{id}', [SeasonController::class, "destroy"])->name('seasons.destroy');
 
             Route::prefix('/{seasonId}/episodes')->group(function () {
                 Route::post('/', [EpisodeController::class, "store"])->name('episodes.store');
                 Route::get('/', [EpisodeController::class, "index"])->name('episodes.index');
-                Route::put('/', [EpisodeController::class, "update"])->name('episodes.update');
-                Route::delete('/', [EpisodeController::class, "destroy"])->name('episodes.destroy');
+                Route::put('/{id}', [EpisodeController::class, "update"])->name('episodes.update');
+                Route::delete('/{id}', [EpisodeController::class, "destroy"])->name('episodes.destroy');
 
                 Route::prefix('/{episodeId}/subtitles')->group(function () {
                     Route::post('/', [SubtitleController::class, "store"])->name('episodes.subtitles.store');

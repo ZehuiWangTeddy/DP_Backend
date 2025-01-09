@@ -33,7 +33,9 @@ class EpisodeController extends BaseController
             'viewing_classification' => 'required|string',
         ])->validate();
 
-        $season = Season::findOrFail($seasonId);
+        $season = Season::where('series_id', $seriesId)
+            ->where('season_id', $seasonId)
+            ->firstOrFail();
         $episode = $season->episodes()->create($validated);
 
         return $this->successResponse($episode, 'Episode created successfully');

@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends BaseController
 {
     public function index(Request $request)
     {
+
         $userModel = new User();
 
         $search = $request->get('search');
@@ -24,9 +27,6 @@ class UserController extends BaseController
     public function show($id)
     {
         $user = User::find($id);
-        if (!$user) {
-            return $this->errorResponse('User not found', 404);
-        }
         return $this->dataResponse($user);
     }
 
@@ -40,12 +40,21 @@ class UserController extends BaseController
         $validated = $request->validate([
             'name' => 'sometimes|string|max:100',
             'address' => 'sometimes|string',
+            'email' => [
+                'sometimes', 'email', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id'),
+            ],
         ]);
 
         $user->update($validated);
         return $this->dataResponse($user);
     }
 
+    /**
+     * Remove the specified user.
+     *
+     * @param  int  $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function destroy($id)
     {
         $user = User::find($id);

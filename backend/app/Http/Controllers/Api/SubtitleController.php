@@ -51,7 +51,7 @@ class SubtitleController extends BaseController
             return response()->json(['message' => 'Episode or Movie not specified.'], 400);
         }
 
-        return response()->json($subtitles);
+        return response()->json(['data' => $subtitles, 'message' => 'Episode retrieved successfully'], 200);
     }
 
     // Update an existing subtitle

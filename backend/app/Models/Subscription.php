@@ -10,14 +10,14 @@ class Subscription extends Model
     use HasFactory;
 
 
-        /**
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
      */
     public $timestamps = false;
 
-         /**
+    /**
      * The primary key associated with the table.
      *
      * @var string
