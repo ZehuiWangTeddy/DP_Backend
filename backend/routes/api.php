@@ -52,9 +52,10 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
 
         Route::prefix('{id}/preferences')->group(function () {
-            Route::get('/', [PreferenceController::class, "index"])->name('preferences.index');
+            Route::get('/', [PreferenceController::class, "show"])->name('preferences.show');
             Route::post('/', [PreferenceController::class, "store"])->name('preferences.store');
             Route::put('/', [PreferenceController::class, "update"])->name('preferences.update');
+            Route::delete('/', [PreferenceController::class, "destroy"])->name('PreferenceController.destroy');
         });
 
         Route::prefix('{id}/watch-history')->group(function () {
