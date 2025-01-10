@@ -15,10 +15,13 @@ class ProfileController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        $Profiles = Profile::paginate();
-        return $this->paginationResponse($Profiles);
+        $profiles = Profile::where('user_id', Auth::id())->paginate();
+        return response()->json([
+            'data' => $profiles,
+            'message' => 'Profiles retrieved successfully'
+        ]);
     }
 
     /**

@@ -4,68 +4,112 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Episode;
-use App\Models\Season;
-use App\Models\Series;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EpisodeController extends BaseController
 {
-    public function index($seriesId, $seasonId)
+    private function validateEpisode(Request $request, $isUpdate = false)
     {
-        $season = Season::where('series_id', $seriesId)
-            ->where('season_id', $seasonId)
-            ->firstOrFail();
+        $rules = [
+            'season_id' => $isUpdate ? 'sometimes|exists:seasons,season_id' : 'required|exists:seasons,season_id',
+            'episode_number' => $isUpdate ? 'sometimes|integer' : 'required|integer',
+            'title' => $isUpdate ? 'sometimes|string|max:255' : 'required|string|max:255',
+            'quality' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'duration' => $isUpdate ? 'sometimes|regex:/^\d{2}:\d{2}:\d{2}$/' : 'required|regex:/^\d{2}:\d{2}:\d{2}$/',
+            'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'release_date' => $isUpdate ? 'sometimes|date' : 'required|date',
+            'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
+            'file' => $isUpdate ? 'sometimes|file|mimes:mp4|max:20480' : 'nullable|file|mimes:mp4|max:20480',
+        ];
 
-        $episodes = $season->episodes;
-
-        return response()->json(['data' => $episodes, 'message' => 'Episode retrieved successfully'], 200);
-    }
-    // Store a new episode
-    public function store(Request $request, $seriesId, $seasonId)
-    {
-        $validated = validator($request->all(), [
-            'episode_number' => 'required|integer',
-            'title' => 'required|string|max:255',
-            'quality' => 'required|string',
-            'duration' => 'required|integer',
-            'available_languages' => 'required|string',
-            'release_date' => 'required|date',
-            'viewing_classification' => 'required|string',
-        ])->validate();
-
-        $season = Season::where('series_id', $seriesId)
-            ->where('season_id', $seasonId)
-            ->firstOrFail();
-        $episode = $season->episodes()->create($validated);
-
-        return $this->successResponse($episode, 'Episode created successfully');
+        return $request->validate($rules);
     }
 
-    // Update an existing episode
-    public function update(Request $request, $seriesId, $seasonId, $episodeId)
+    private function encodeFields($data)
     {
-        $validated = validator($request->all(), [
-            'episode_number' => 'sometimes|integer',
-            'title' => 'sometimes|string|max:255',
-            'quality' => 'sometimes|string',
-            'duration' => 'sometimes|integer',
-            'available_languages' => 'sometimes|string',
-            'release_date' => 'sometimes|date',
-            'viewing_classification' => 'sometimes|string',
-        ])->validate();
-
-        $episode = Episode::findOrFail($episodeId);
-        $episode->update($validated);
-
-        return $this->successResponse($episode, 'Episode updated successfully');
+        foreach (['quality', 'available_languages'] as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = json_encode($data[$field]);
+            }
+        }
+        return $data;
     }
 
-    // Delete an episode
-    public function destroy($seriesId, $seasonId, $episodeId)
+    public function index()
     {
-        $episode = Episode::findOrFail($episodeId);
-        $episode->delete();
+        $episodes = Episode::all();
+        return response()->json(['data' => $episodes, 'message' => 'Episodes retrieved successfully'], 200);
+    }
 
-        return $this->messageResponse('Episode deleted successfully', 204);
+    public function store(Request $request)
+    {
+        try {
+            $validated = $this->validateEpisode($request);
+            $validated = $this->encodeFields($validated);
+
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
+                $path = $file->storeAs('media/episodes', $safeName, 'public');
+                $validated['file_path'] = $path;
+            }
+
+            $episode = Episode::create($validated);
+            return response()->json([
+                'data' => $episode,
+                'url' => isset($path) ? Storage::url($path) : null,
+                'message' => 'Episode created successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create episode: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        $episode = Episode::findOrFail($id);
+        return response()->json(['data' => $episode, 'message' => 'Episode retrieved successfully'], 200);
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $episode = Episode::findOrFail($id);
+            $validated = $this->validateEpisode($request, true);
+            $validated = $this->encodeFields($validated);
+
+            if ($request->hasFile('file')) {
+                if ($episode->file_path && Storage::exists($episode->file_path)) {
+                    Storage::delete($episode->file_path);
+                }
+
+                $file = $request->file('file');
+                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
+                $path = $file->storeAs('media/episodes', $safeName, 'public');
+                $validated['file_path'] = $path;
+            }
+
+            $episode->update($validated);
+            return response()->json(['data' => $episode, 'message' => 'Episode updated successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update episode: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $episode = Episode::findOrFail($id);
+
+            if ($episode->file_path && Storage::exists($episode->file_path)) {
+                Storage::delete($episode->file_path);
+            }
+
+            $episode->delete();
+            return response()->json(['message' => 'Episode deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete episode: ' . $e->getMessage()], 500);
+        }
     }
 }

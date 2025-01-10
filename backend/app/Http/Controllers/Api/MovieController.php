@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Models\Movie;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MovieController extends BaseController
 {
@@ -19,6 +20,7 @@ class MovieController extends BaseController
             'genre' => $isUpdate ? 'sometimes|array' : 'required|array',
             'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
             'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'file' => $isUpdate ? 'sometimes|file|mimes:mp4|max:20480' : 'nullable|file|mimes:mp4|max:20480',
         ];
 
         return $request->validate($rules);
@@ -42,11 +44,26 @@ class MovieController extends BaseController
 
     public function store(Request $request)
     {
-        $validated = $this->validateMovie($request);
-        $validated = $this->encodeFields($validated);
+        try {
+            $validated = $this->validateMovie($request);
+            $validated = $this->encodeFields($validated);
 
-        $movie = Movie::create($validated);
-        return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
+                $path = $file->storeAs('media/movies', $safeName, 'public');
+                $validated['file_path'] = $path;
+            }
+
+            $movie = Movie::create($validated);
+            return response()->json([
+                'data' => $movie,
+                'url' => isset($path) ? Storage::url($path) : null,
+                'message' => 'Movie created successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create movie: ' . $e->getMessage()], 500);
+        }
     }
 
     public function show($id)
@@ -57,20 +74,43 @@ class MovieController extends BaseController
 
     public function update(Request $request, $id)
     {
-        $movie = Movie::findOrFail($id);
+        try {
+            $movie = Movie::findOrFail($id);
+            $validated = $this->validateMovie($request, true);
+            $validated = $this->encodeFields($validated);
 
-        $validated = $this->validateMovie($request, true);
-        $validated = $this->encodeFields($validated);
+            if ($request->hasFile('file')) {
+                // Delete old file if it exists
+                if ($movie->file_path && Storage::exists($movie->file_path)) {
+                    Storage::delete($movie->file_path);
+                }
 
-        $movie->update($validated);
-        return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
+                $file = $request->file('file');
+                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
+                $path = $file->storeAs('media/movies', $safeName, 'public');
+                $validated['file_path'] = $path;
+            }
+
+            $movie->update($validated);
+            return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update movie: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroy($id)
     {
-        $movie = Movie::findOrFail($id);
-        $movie->delete();
+        try {
+            $movie = Movie::findOrFail($id);
 
-        return response()->json(['message' => 'Movie deleted successfully'], 200);
+            if ($movie->file_path && Storage::exists($movie->file_path)) {
+                Storage::delete($movie->file_path);
+            }
+
+            $movie->delete();
+            return response()->json(['message' => 'Movie deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete movie: ' . $e->getMessage()], 500);
+        }
     }
 }

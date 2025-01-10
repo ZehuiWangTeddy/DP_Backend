@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EpisodeController;
-use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MovieController;
 use App\Http\Controllers\Api\PreferenceController;
 use App\Http\Controllers\Api\ProfileController;
@@ -102,29 +101,6 @@ Route::middleware('auth:api')->group(function () {
                 Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
             });
         });
-    });
-
-//    Route::apiResource('movies', 'MovieController')->except(['edit', 'create'])->names([
-//        'index' => 'movies.index',
-//        'store' => 'movies.store',
-//        'show' => 'movies.show',
-//        'update' => 'movies.update',
-//        'destroy' => 'movies.destroy',
-//    ]);
-
-//    Route::apiResource('series', 'SeriesController')->except(['edit', 'create'])->names([
-//        'index' => 'series.index',
-//        'store' => 'series.store',
-//        'show' => 'series.show',
-//        'update' => 'series.update',
-//        'destroy' => 'series.destroy',
-//    ]);
-
-
-    Route::prefix('media')->group(function () {
-        Route::post('/upload', [MediaController::class, 'upload'])->name('media.upload');
-        Route::get('/{id}', [MediaController::class, 'getMedia'])->name('media.get');
-        Route::delete('/{id}', [MediaController::class, 'delete'])->name('media.delete');
     });
 
     // Add separate routes for movies and episodes
