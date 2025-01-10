@@ -57,6 +57,12 @@ class ProfileController extends BaseController
 
         $validated = $validator->safe();
 
+        $profileCount = Profile::where('user_id', $validated['user_id'])->count();
+
+        if ($profileCount >= 4) {
+            return $this->errorResponse(400, 'A user cannot have more than 4 profiles.');
+        }
+
         // Start database transaction
         DB::beginTransaction();
 
