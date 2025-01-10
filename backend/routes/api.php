@@ -46,60 +46,39 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('profiles')->group(function () {
         Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
+        Route::post('/', [ProfileController::class, "store"])->name('profiles.store');
         Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
         Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
         Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
-        Route::post('/{id}', [ProfileController::class, "createProfile"])->name('profiles.create');
 
         Route::prefix('{id}/preferences')->group(function () {
             Route::get('/', [PreferenceController::class, "index"])->name('preferences.index');
-            Route::post('/', 'PreferenceController@store')->name('preferences.store');
-            Route::put('/', 'PreferenceController@update')->name('preferences.update');
+            Route::post('/', [PreferenceController::class, "store"])->name('preferences.store');
+            Route::put('/', [PreferenceController::class, "update"])->name('preferences.update');
         });
 
         Route::prefix('{id}/watch-history')->group(function () {
-            Route::get('/', 'WatchHistoryController@index')->name('watchHistory.index');
-            Route::post('/movie/{movieId}/start', 'WatchHistoryController@startMovie')->name('watchHistory.startMovie');
-            Route::post('/movie/{movieId}/finish', 'WatchHistoryController@finishMovie')->name('watchHistory.finishMovie');
-            Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/start', 'WatchHistoryController@startEpisode')->name('watchHistory.startEpisode');
-            Route::post('/series/{seriesId}/season/{seasonId}/episode/{episodeId}/finish', 'WatchHistoryController@finishEpisode')->name('watchHistory.finishEpisode');
+            Route::get('/', [WatchHistoryController::class, "index"])->name('watchHistory.index');
+            Route::post('/movie/start', [WatchHistoryController::class, "startMovie"])->name('watchHistory.startMovie');
+            Route::post('/movie/finish', [WatchHistoryController::class, "finishMovie"])->name('watchHistory.finishMovie');
+            Route::post('/series/{seriesId}/season/{seasonId}/episode/start', [WatchHistoryController::class, "startEpisode"])->name('watchHistory.startEpisode');
+            Route::post('/series/{seriesId}/season/{seasonId}/episode/finish', [WatchHistoryController::class, "finishEpisode"])->name('watchHistory.finishEpisode');
         });
 
-        Route::prefix('profiles')->group(function () {
-            Route::get('/', [ProfileController::class, "index"])->name('profiles.index');
-            Route::get('/{id}', [ProfileController::class, "show"])->name('profiles.show');
-            Route::put('/{id}', [ProfileController::class, "update"])->name('profiles.update');
-            Route::delete('/{id}', [ProfileController::class, "destroy"])->name('profiles.destroy');
+        Route::prefix('{id}/watch-list')->group(function () {
+            Route::get('/', [WatchListController::class, "index"])->name('watchList.index');
+            Route::post('/movie', [WatchListController::class, "addMovie"])->name('watchList.addMovie');
+            Route::delete('/movie', [WatchListController::class, "removeMovie"])->name('watchList.removeMovie');
+            Route::post('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "addEpisode"])->name('watchList.addEpisode');
+            Route::delete('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "removeEpisode"])->name('watchList.removeEpisode');
+        });
 
-            Route::prefix('{id}/preferences')->group(function () {
-                Route::get('/', [PreferenceController::class, "index"])->name('preferences.index');
-                Route::post('/', [PreferenceController::class, "store"])->name('preferences.store');
-                Route::put('/', [PreferenceController::class, "update"])->name('preferences.update');
-            });
-
-            Route::prefix('{id}/watch-history')->group(function () {
-                Route::get('/', [WatchHistoryController::class, "index"])->name('watchHistory.index');
-                Route::post('/movie/start', [WatchHistoryController::class, "startMovie"])->name('watchHistory.startMovie');
-                Route::post('/movie/finish', [WatchHistoryController::class, "finishMovie"])->name('watchHistory.finishMovie');
-                Route::post('/series/{seriesId}/season/{seasonId}/episode/start', [WatchHistoryController::class, "startEpisode"])->name('watchHistory.startEpisode');
-                Route::post('/series/{seriesId}/season/{seasonId}/episode/finish', [WatchHistoryController::class, "finishEpisode"])->name('watchHistory.finishEpisode');
-            });
-
-            Route::prefix('{id}/watch-list')->group(function () {
-                Route::get('/', [WatchListController::class, "index"])->name('watchList.index');
-                Route::post('/movie', [WatchListController::class, "addMovie"])->name('watchList.addMovie');
-                Route::delete('/movie', [WatchListController::class, "removeMovie"])->name('watchList.removeMovie');
-                Route::post('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "addEpisode"])->name('watchList.addEpisode');
-                Route::delete('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "removeEpisode"])->name('watchList.removeEpisode');
-            });
-
-            Route::prefix('{id}/recommendations')->group(function () {
-                Route::get('/', [RecommendationController::class, "index"])->name('recommendations.index');
-                Route::post('/movie', [RecommendationController::class, "addMovie"])->name('recommendations.addMovie');
-                Route::post('/series', [RecommendationController::class, "addSeries"])->name('recommendations.addSeries');
-                Route::delete('/movie', [RecommendationController::class, "removeMovie"])->name('recommendations.removeMovie');
-                Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
-            });
+        Route::prefix('{id}/recommendations')->group(function () {
+            Route::get('/', [RecommendationController::class, "index"])->name('recommendations.index');
+            Route::post('/movie', [RecommendationController::class, "addMovie"])->name('recommendations.addMovie');
+            Route::post('/series', [RecommendationController::class, "addSeries"])->name('recommendations.addSeries');
+            Route::delete('/movie', [RecommendationController::class, "removeMovie"])->name('recommendations.removeMovie');
+            Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
         });
     });
 

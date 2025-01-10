@@ -6,7 +6,10 @@ use App\Http\Controllers\BaseController;
 use App\Models\Profile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends BaseController
 {
@@ -133,36 +136,52 @@ class ProfileController extends BaseController
 
     /**
      * Store a new profile for the authenticated user.
-     *
-     * @param Request $request
-     * @param int $user_id
-     * @return JsonResponse
      */
-    public function store(Request $request, $user_id): JsonResponse
+    public function store(Request $request)
     {
         // Validate the request data
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users',
             'name' => 'required|string|max:255',
             'avatar' => 'nullable|string|max:255',
             'is_kids' => 'nullable|boolean',
             'language' => 'required|string|max:10',
         ]);
 
-        // Create a new profile
-        $profile = Profile::create([
-            'user_id' => $user_id,
-            'name' => $validated['name'],
-            'avatar' => $validated['avatar'] ?? null,
-            'is_kids' => $validated['is_kids'] ?? false,
-            'language' => $validated['language'],
-        ]);
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
 
-        return response()->json(
-            [
-                'data' => $profile,
-                'message' => 'Profile created successfully'
-            ],
-            201
-        );
+        $validated = $validator->safe();
+
+        // Start database transaction
+        DB::beginTransaction();
+
+        try {
+            // Create the new profile record in the database
+            $profile = Profile::create([
+                'user_id' => $validated['user_id'],
+                'name' => $validated['name'],
+                'avatar' => $validated['avatar'],
+                'is_kids' => $validated['is_kids'],
+                'language' => $validated['language'],
+            ]);
+
+            // Commit the transaction after successful user creation
+            DB::commit();
+
+            // Return the response with subscription data
+            return $this->dataResponse([
+                'profile' => $profile->only(['profile_id', 'user_id', 'name', 'avatar', 'is_kids', 'language']),
+            ], "Subscription created successfully.");
+        } catch (\Exception $e) {
+            // If anything goes wrong, roll back the transaction
+            DB::rollBack();
+
+            Log::error($e);
+            // Return error response in case of failure
+            return $this->errorResponse(500, 'Failed to add new profile. Please try again later.');
+
+        }
     }
 }
