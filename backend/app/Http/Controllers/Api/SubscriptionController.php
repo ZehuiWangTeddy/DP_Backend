@@ -68,85 +68,13 @@ class SubscriptionController extends BaseController
         }
     }
 
-    public function payment($id)
+    public function show($id)
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
             return $this->errorResponse('Subscription not found', 404);
         }
         return $this->dataResponse($subscription, "Subscription payment details retrieved successfully");
-    }
-
-    public function updateStartDate(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $validated = $request->validate([
-            'start_date' => [
-                'sometimes',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($subscription) {
-                    if ($value > now()->format('Y-m-d') ) {
-                        $fail('Start date cannot be later than today');
-                    }
-                }
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription, "Subscription start date updated successfully");
-    }
-
-    public function updateEndDate(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $startDate = $subscription->start_date;
-
-        $validated = $request->validate([
-            'end_date' => [
-                'sometimes',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($startDate) {
-                    if ($startDate && $value < $startDate) {
-                        $fail('end date must be after start date');
-                    }
-                },
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription, "Subscription end date updated successfully");
-    }
-
-    public function updatePayment_method(Request $request, $id)
-    {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            abort(404, 'Subscription Not found');
-        }
-
-        $validated = $request->validate([
-            'payment_method' => [
-                'sometimes',
-                'string',
-                function ($attribute, $value, $fail) use ($subscription) {
-                    $allowedMethods = ['PayPal', 'Visa', 'MasterCard', 'Apple Pay', 'Google Pay', 'iDEAL'];
-                    if ($value && !in_array($value, $allowedMethods)) {
-                        $fail('The selected payment method is invalid. Allowed methods are: ' . implode(', ', $allowedMethods));
-                    }
-                }
-            ],
-        ]);
-
-        $subscription->update($validated);
-        return $this->dataResponse($subscription, "Subscription payment method updated successfully");
     }
 
     public function update(Request $request, $id)
