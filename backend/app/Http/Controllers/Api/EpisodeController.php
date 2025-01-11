@@ -15,12 +15,11 @@ class EpisodeController extends BaseController
             'season_id' => $isUpdate ? 'sometimes|exists:seasons,season_id' : 'required|exists:seasons,season_id',
             'episode_number' => $isUpdate ? 'sometimes|integer' : 'required|integer',
             'title' => $isUpdate ? 'sometimes|string|max:255' : 'required|string|max:255',
-            'quality' => $isUpdate ? 'sometimes' : 'in:HD,SD,UHD',
+            'quality' => $isUpdate ? 'sometimes|array|in:SD,HD,UHD' : 'required|array|in:SD,HD,UHD',
             'duration' => $isUpdate ? 'sometimes|regex:/^\d{2}:\d{2}:\d{2}$/' : 'required|regex:/^\d{2}:\d{2}:\d{2}$/',
             'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
             'release_date' => $isUpdate ? 'sometimes|date' : 'required|date',
-            'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
-            'file' => $isUpdate ? 'sometimes|file|mimes:mp4|max:20480' : 'nullable|file|mimes:mp4|max:20480',
+            'viewing_classification' => $isUpdate ? 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements' : 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
         ];
 
         return $request->validate($rules);

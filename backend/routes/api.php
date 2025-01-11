@@ -76,10 +76,10 @@ Route::middleware('auth:api')->group(function () {
 
         Route::prefix('{id}/recommendations')->group(function () {
             Route::get('/', [RecommendationController::class, "index"])->name('recommendations.index');
-            Route::post('/movie', [RecommendationController::class, "addMovie"])->name('recommendations.addMovie');
-            Route::post('/series', [RecommendationController::class, "addSeries"])->name('recommendations.addSeries');
-            Route::delete('/movie', [RecommendationController::class, "removeMovie"])->name('recommendations.removeMovie');
-            Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
+//            Route::post('/movie', [RecommendationController::class, "addMovie"])->name('recommendations.addMovie');
+//            Route::post('/series', [RecommendationController::class, "addSeries"])->name('recommendations.addSeries');
+//            Route::delete('/movie', [RecommendationController::class, "removeMovie"])->name('recommendations.removeMovie');
+//            Route::delete('/series', [RecommendationController::class, "removeSeries"])->name('recommendations.removeSeries');
         });
     });
 

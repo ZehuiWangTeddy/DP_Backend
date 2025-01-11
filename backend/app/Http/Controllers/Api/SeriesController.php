@@ -20,8 +20,8 @@ class SeriesController extends BaseController
             'title' => 'required|string|max:100',
             'release_date' => 'required|date',
             'age_restriction' => 'required|integer|min:0',
-            'genre' => 'required|array',
-            'viewing_classification' => 'required|string',
+            'genre' => 'required|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+            'viewing_classification' => 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
             'available_languages' => 'required|array',
         ]);
 
@@ -36,6 +36,9 @@ class SeriesController extends BaseController
     public function show($id)
     {
         $series = Series::findOrFail($id);
+        if (!$series) {
+            return $this->errorResponse(404, 'Series not found');
+        }
         return $this->dataResponse($series, 'Series retrieved successfully');
     }
 
@@ -47,8 +50,8 @@ class SeriesController extends BaseController
             'title' => 'sometimes|string|max:100',
             'release_date' => 'sometimes|date',
             'age_restriction' => 'sometimes|integer|min:0',
-            'genre' => 'sometimes|array',
-            'viewing_classification' => 'sometimes|string',
+            'genre' => 'sometimes|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+            'viewing_classification' => 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
             'available_languages' => 'sometimes|array',
         ]);
 
@@ -70,7 +73,7 @@ class SeriesController extends BaseController
             return $this->errorResponse(404, 'Series not found');
         }
         $series->delete();
-        return $this->messageResponse('Series deleted successfully', 201);
+        return $this->messageResponse('Series deleted successfully', 200);
     }
 
     public function search(Request $request)

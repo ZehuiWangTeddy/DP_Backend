@@ -15,12 +15,11 @@ class MovieController extends BaseController
             'title' => $isUpdate ? 'sometimes|string|max:100' : 'required|string|max:100',
             'duration' => $isUpdate ? 'sometimes|regex:/^\d{2}:\d{2}:\d{2}$/' : 'required|regex:/^\d{2}:\d{2}:\d{2}$/',
             'release_date' => $isUpdate ? 'sometimes|date' : 'required|date',
-            'quality' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'quality' => $isUpdate ? 'sometimes|array|in:SD,HD,UHD' : 'required|array|in:SD,HD,UHD',
             'age_restriction' => $isUpdate ? 'sometimes|integer|min:0' : 'required|integer|min:0',
-            'genre' => $isUpdate ? 'sometimes|array' : 'required|array',
-            'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
+            'genre' => $isUpdate ? 'sometimes|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical' : 'required|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+            'viewing_classification' => $isUpdate ? 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements' : 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
             'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
-            'file' => $isUpdate ? 'sometimes|file|mimes:mp4|max:20480' : 'nullable|file|mimes:mp4|max:20480',
         ];
 
         return $request->validate($rules);
@@ -51,15 +50,12 @@ class MovieController extends BaseController
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
-                $path = $file->storeAs('media/movies', $safeName, 'public');
-                $validated['file_path'] = $path;
             }
 
             $movie = Movie::create($validated);
 
             return $this->dataResponse([
                 'data' => $movie,
-                'url' => isset($path) ? Storage::url($path) : null,
             ], "Movie created successfully");
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
@@ -103,18 +99,11 @@ class MovieController extends BaseController
 
     public function destroy($id)
     {
-        try {
-            $movie = Movie::findOrFail($id);
-
-            if ($movie->file_path && Storage::exists($movie->file_path)) {
-                Storage::delete($movie->file_path);
-            }
-
-            $movie->delete();
-
-            return $this->messageResponse('Movie deleted successfully');
-        } catch (\Exception $e) {
-            return $this->errorResponse(500, 'Failed to delete movie: ' . $e->getMessage());
+        $movie = Movie::find($id);
+        if (!$movie) {
+            return $this->errorResponse(404, 'Movie not found');
         }
+        $movie->delete();
+        return $this->messageResponse('Movie deleted successfully', 200);
     }
 }
