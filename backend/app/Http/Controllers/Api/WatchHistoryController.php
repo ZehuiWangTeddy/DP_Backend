@@ -109,26 +109,6 @@ class WatchHistoryController extends BaseController
         // Validate input with additional checks
         $validator = Validator::make($request->all(), [
             'movie_id' => 'required|exists:movies',
-            'resume_to' => [
-                'required',
-                'date_format:H:i:s',
-                function ($attribute, $value, $fail) use ($request) {
-                    // Ensure the correct movie is being used
-                    $movie = Movie::find($request->movie_id);
-                    if (!$movie) {
-                        return $fail("Movie not found.");
-                    }
-
-                    // Convert resume_to and duration to seconds for comparison
-                    $resumeToInSeconds = strtotime($value) - strtotime('TODAY');
-                    $movieDurationInSeconds = strtotime($movie->duration) - strtotime('TODAY');
-
-                    // Check if resume_to matches the movie's duration
-                    if ($resumeToInSeconds !== $movieDurationInSeconds) {
-                        $fail("The $attribute must be equal to the movie's duration ({$movie->duration}).");
-                    }
-                },
-            ],
             'watched_time_stamp' => 'required|date_format:Y-m-d H:i:s',
         ]);
 
@@ -158,7 +138,6 @@ class WatchHistoryController extends BaseController
 
         try {
             // Update the watch history record
-            $watchHistory->resume_to = $validated['resume_to'];
             $watchHistory->watched_time_stamp = $validated['watched_time_stamp'];
             $watchHistory->viewing_status = 'finished';
             $watchHistory->save();
@@ -183,7 +162,7 @@ class WatchHistoryController extends BaseController
     }
 
 
-    public function startEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId): \Illuminate\Http\JsonResponse
+    public function startEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId)
     {
         $episode = Episode::findOrFail($episodeId);
 
@@ -197,21 +176,21 @@ class WatchHistoryController extends BaseController
             'end_time' => null,
         ]);
 
-        return response()->json(['message' => 'Episode started successfully'], 200);
+        return $this->messageResponse('Episode started successfully');
     }
 
-    public function finishEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId): \Illuminate\Http\JsonResponse
+    public function finishEpisode(Request $request, $profileId, $seriesId, $seasonId, $episodeId)
     {
         $watchHistory = WatchHistory::where('profile_id', $profileId)
-                                    ->where('media_type', 'episode')
-                                    ->where('media_id', $episodeId)
-                                    ->whereNull('end_time')
-                                    ->firstOrFail();
+            ->where('media_type', 'episode')
+            ->where('media_id', $episodeId)
+            ->whereNull('end_time')
+            ->firstOrFail();
 
         $watchHistory->update([
             'end_time' => now(),
         ]);
 
-        return response()->json(['message' => 'Episode finished successfully'], 200);
+        return $this->messageResponse('Episode finished successfully');
     }
 }

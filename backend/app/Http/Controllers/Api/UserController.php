@@ -26,7 +26,10 @@ class UserController extends BaseController
 
     public function show($id)
     {
-        $user = User::find($id);
+        $user = User::with(['profiles', 'subscriptions'])->find($id);
+        if (!$user) {
+            return $this->errorResponse(404, 'User not found');
+        }
         return $this->dataResponse($user);
     }
 
@@ -51,22 +54,19 @@ class UserController extends BaseController
 
     /**
      * Remove the specified user.
-     *
-     * @param  int  $id
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function destroy($id)
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse(404, 'User not found');
         }
 
         if ($user->user_id == Auth::user()->user_id) {
-            return $this->errorResponse('You cannot delete yourself', 403);
+            return $this->errorResponse(400, 'You cannot delete yourself');
         }
 
         $user->delete();
-        return $this->messageResponse("User deleted successfully", 204);
+        return $this->messageResponse("User deleted successfully", 200);
     }
 }

@@ -14,9 +14,14 @@ class SeasonController extends BaseController
      */
     public function index($seriesId)
     {
-        $series = Series::findOrFail($seriesId);
-        $seasons = $series->seasons;
-        return response()->json(['data' => $series, 'message' => 'Series retrieved successfully'], 200);
+        try {
+            $series = Series::findOrFail($seriesId);
+            $seasons = $series->seasons;
+
+            return $this->dataResponse($seasons, 'Seasons retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, 'Failed to retrieve seasons: no series found');
+        }
     }
 
     /**
@@ -24,8 +29,6 @@ class SeasonController extends BaseController
      */
     public function store(Request $request, $seriesId)
     {
-        $series = Series::findOrFail($seriesId);
-
         $validated = $request->validate([
             'season_number' => 'required|integer|min:1',
             'release_date' => 'required|date',
@@ -34,7 +37,7 @@ class SeasonController extends BaseController
         $validated['series_id'] = $seriesId;
         $season = Season::create($validated);
 
-        return response()->json($season, 201);
+        return $this->dataResponse($season, 'Season created successfully');
     }
 
     /**
@@ -52,7 +55,7 @@ class SeasonController extends BaseController
             ->firstOrFail();
         $season->update($validated);
 
-        return response()->json($season, 200);
+        return $this->dataResponse($season);
     }
 
     /**
@@ -65,6 +68,6 @@ class SeasonController extends BaseController
             ->firstOrFail();
         $season->delete();
 
-        return response()->json(['message' => 'Season deleted successfully'], 200);
+        return $this->messageResponse('Season deleted successfully');
     }
 }

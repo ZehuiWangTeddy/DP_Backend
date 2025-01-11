@@ -19,7 +19,7 @@ class PreferenceController extends BaseController
         $preference = Preference::where('profile_id', $profileId)->first();
 
         if (!$preference) {
-            return $this->errorResponse('Preference not found', 404);
+            return $this->errorResponse(404, 'Preference not found');
         }
 
         return $this->dataResponse($preference, 'Preferences retrieved successfully');
@@ -121,7 +121,7 @@ class PreferenceController extends BaseController
         // Find the existing preference based on profile_id
         $preference = Preference::where('profile_id', $profileId)->first();
         if (!$preference) {
-            return $this->errorResponse('Preference not found', 404);
+            return $this->errorResponse(404, 'Preference not found');
         }
 
         // Validate the request data
@@ -201,7 +201,7 @@ class PreferenceController extends BaseController
         // Find the existing preference based on profile_id
         $preference = Preference::where('profile_id', $profileId)->first();
         if (!$preference) {
-            return $this->errorResponse('Preference not found', 404);
+            return $this->errorResponse(404,'Preference not found');
         }
         $preference->delete();
         return $this->messageResponse('Preference deleted successfully.', 200);

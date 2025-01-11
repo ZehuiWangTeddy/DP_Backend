@@ -39,7 +39,7 @@ class MovieController extends BaseController
     public function index()
     {
         $movies = Movie::all();
-        return response()->json(['data' => $movies, 'message' => 'Movies retrieved successfully'], 200);
+        return $this->dataResponse($movies, 'Movies retrieved successfully');
     }
 
     public function store(Request $request)
@@ -56,20 +56,23 @@ class MovieController extends BaseController
             }
 
             $movie = Movie::create($validated);
-            return response()->json([
+
+            return $this->dataResponse([
                 'data' => $movie,
                 'url' => isset($path) ? Storage::url($path) : null,
-                'message' => 'Movie created successfully'
-            ], 201);
+            ], "Movie created successfully");
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to create movie: ' . $e->getMessage()], 500);
+            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
         }
     }
 
     public function show($id)
     {
         $movie = Movie::findOrFail($id);
-        return response()->json(['data' => $movie, 'message' => 'Movie retrieved successfully'], 200);
+        if (!$movie) {
+            return $this->errorResponse(404, 'Movie not found');
+        }
+        return $this->dataResponse($movie, 'Movie retrieved successfully');
     }
 
     public function update(Request $request, $id)
@@ -92,9 +95,9 @@ class MovieController extends BaseController
             }
 
             $movie->update($validated);
-            return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
+            return $this->dataResponse($movie, 'Movie updated successfully');
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update movie: ' . $e->getMessage()], 500);
+            return $this->errorResponse(500, 'Failed to update movie: ' . $e->getMessage());
         }
     }
 
@@ -108,9 +111,10 @@ class MovieController extends BaseController
             }
 
             $movie->delete();
-            return response()->json(['message' => 'Movie deleted successfully'], 200);
+
+            return $this->messageResponse('Movie deleted successfully');
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to delete movie: ' . $e->getMessage()], 500);
+            return $this->errorResponse(500, 'Failed to delete movie: ' . $e->getMessage());
         }
     }
 }

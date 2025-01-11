@@ -18,8 +18,8 @@ class ProfileController extends BaseController
      */
     public function index()
     {
-        $Profiles = Profile::paginate();
-        return $this->paginationResponse($Profiles);
+        $profiles = Profile::with(['user', 'preference'])->get();
+        return $this->dataResponse($profiles);
     }
 
     /**
@@ -27,10 +27,10 @@ class ProfileController extends BaseController
      */
     public function show($id)
     {
-        $profile = Profile::find($id);
+        $profile = Profile::with(['user', 'preference'])->find($id);
 
         if (!$profile) {
-            return $this->errorResponse('Profile not found', 404);
+            return $this->errorResponse(404, 'Profile not found');
         }
 
          return $this->dataResponse($profile, "Profile details retrieved successfully");
@@ -102,7 +102,7 @@ class ProfileController extends BaseController
 
         $profile = Profile::find($id);
         if (!$profile) {
-            return $this->errorResponse('Profile not found', 404);
+            return $this->errorResponse(404, 'Profile not found');
         }
 
         $validator = Validator::make($request->all(), [
@@ -150,9 +150,9 @@ class ProfileController extends BaseController
     {
         $profile = Profile::find($id);
         if (!$profile) {
-            return $this->errorResponse('Profile not found', 404);
+            return $this->errorResponse(404, 'Profile not found');
         }
         $profile->delete();
-        return $this->messageResponse('Profile deleted successfully.', 200);
+        return $this->messageResponse(200, 'Profile deleted successfully.');
     }
 }

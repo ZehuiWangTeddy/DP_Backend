@@ -68,6 +68,11 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
         return $this->hasMany(Profile::class, 'user_id', 'user_id');
     }
 
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class, 'user_id', 'user_id');
+    }
+
     /**
      * Create initial profile after user registration
      */

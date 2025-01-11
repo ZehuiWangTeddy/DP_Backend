@@ -20,7 +20,7 @@ class SubtitleController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            return $this->errorResponse(400, $validator->errors()->first());
         }
 
         $subtitle = new Subtitle();
@@ -35,23 +35,26 @@ class SubtitleController extends BaseController
             $movie->subtitles()->save($subtitle);
         }
 
-        return response()->json(['message' => 'Subtitle successfully added.'], 201);
+        return $this->messageResponse('Subtitle successfully added.', 201);
     }
 
     // Retrieve all subtitles for a specific episode or movie
     public function index($episodeId = null, $id = null)
     {
-        if ($episodeId) {
-            $episode = Episode::findOrFail($episodeId);
-            $subtitles = $episode->subtitles;
-        } elseif ($id) {
-            $movie = Movie::findOrFail($id);
-            $subtitles = $movie->subtitles;
-        } else {
-            return response()->json(['message' => 'Episode or Movie not specified.'], 400);
+        try {
+            if ($episodeId) {
+                $episode = Episode::findOrFail($episodeId);
+                $subtitles = $episode->subtitles;
+            } elseif ($id) {
+                $movie = Movie::findOrFail($id);
+                $subtitles = $movie->subtitles;
+            } else {
+                return $this->messageResponse('Episode or Movie not specified.', 400);
+            }
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, 'Failed to retrieve subtitles: ' . $e->getMessage());
         }
-
-        return response()->json(['data' => $subtitles, 'message' => 'Episode retrieved successfully'], 200);
+        return $this->dataResponse($subtitles, "Episode retrieved successfully");
     }
 
     // Update an existing subtitle
@@ -63,7 +66,7 @@ class SubtitleController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            return $this->errorResponse(400, $validator->errors()->first());
         }
 
         $subtitle = Subtitle::findOrFail($subtitleId);
@@ -77,7 +80,7 @@ class SubtitleController extends BaseController
 
         $subtitle->save();
 
-        return response()->json(['message' => 'Subtitle successfully updated.']);
+        return $this->messageResponse('Subtitle successfully updated.');
     }
 
     // Delete a subtitle
@@ -86,6 +89,6 @@ class SubtitleController extends BaseController
         $subtitle = Subtitle::findOrFail($subtitleId);
         $subtitle->delete();
 
-        return response()->json(['message' => 'Subtitle successfully deleted.']);
+        return $this->messageResponse('Subtitle successfully deleted.');
     }
 }

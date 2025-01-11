@@ -11,7 +11,7 @@ class SeriesController extends BaseController
     public function index()
     {
         $series = Series::all();
-        return response()->json(['data' => $series, 'message' => 'Series retrieved successfully'], 200);
+        return $this->dataResponse($series, 'Series retrieved successfully');
     }
 
     public function store(Request $request)
@@ -30,13 +30,13 @@ class SeriesController extends BaseController
         }
 
         $series = Series::create($validated);
-        return response()->json(['data' => $series, 'message' => 'Series created successfully'], 201);
+        return $this->dataResponse($series, 'Series created successfully');
     }
 
     public function show($id)
     {
         $series = Series::findOrFail($id);
-        return response()->json(['data' => $series, 'message' => 'Series retrieved successfully'], 200);
+        return $this->dataResponse($series, 'Series retrieved successfully');
     }
 
     public function update(Request $request, $id)
@@ -59,14 +59,18 @@ class SeriesController extends BaseController
         }
 
         $series->update($validated);
-        return response()->json(['data' => $series, 'message' => 'Series updated successfully'], 200);
+
+        return $this->dataResponse($series, 'Series updated successfully');
     }
 
     public function destroy($id)
     {
-        $series = Series::findOrFail($id);
+        $series = Series::find($id);
+        if (!$series) {
+            return $this->errorResponse(404, 'Series not found');
+        }
         $series->delete();
-        return response()->json(['message' => 'Series deleted successfully'], 200);
+        return $this->messageResponse('Series deleted successfully', 201);
     }
 
     public function search(Request $request)
@@ -76,7 +80,7 @@ class SeriesController extends BaseController
         ]);
 
         $series = Series::where('title', 'LIKE', '%' . $validated['query'] . '%')->get();
-        return response()->json(['data' => $series, 'message' => 'Search results retrieved successfully'], 200);
+        return $this->dataResponse($series, 'Search results retrieved successfully');
     }
 
     public function getByGenre(Request $request)
@@ -86,7 +90,7 @@ class SeriesController extends BaseController
         ]);
 
         $series = Series::whereJsonContains('genre', $validated['genre'])->get();
-        return response()->json(['data' => $series, 'message' => 'Series retrieved by genre successfully'], 200);
+        return $this->dataResponse($series, 'Series retrieved by genre successfully');
     }
 
     public function getByAgeRestriction(Request $request)
@@ -96,7 +100,7 @@ class SeriesController extends BaseController
         ]);
 
         $series = Series::where('age_restriction', '<=', $validated['age'])->get();
-        return response()->json(['data' => $series, 'message' => 'Series retrieved by age restriction successfully'], 200);
+        return $this->dataResponse($series, 'Series retrieved by age restriction successfully');
     }
 
     public function getByLanguage(Request $request)
@@ -106,12 +110,12 @@ class SeriesController extends BaseController
         ]);
 
         $series = Series::whereJsonContains('available_languages', $validated['language'])->get();
-        return response()->json(['data' => $series, 'message' => 'Series retrieved by language successfully'], 200);
+        return $this->dataResponse($series, 'Series retrieved by language successfully');
     }
 
     public function getLatest()
     {
         $series = Series::orderBy('release_date', 'desc')->take(10)->get();
-        return response()->json(['data' => $series, 'message' => 'Latest series retrieved successfully'], 200);
+        return $this->dataResponse($series, 'Latest series retrieved successfully');
     }
 }

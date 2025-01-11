@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\StanderOutputHelper;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,12 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException $e) {
-            return response()->json([
-                'meta' => [
-                    'code' => 401,
-                    'message' => $e->getMessage(),
-                ],
-                'data' => [],
-            ], 401);
+
+            return StanderOutputHelper::StanderResponse(401, $e->getMessage());
         });
     })->create();

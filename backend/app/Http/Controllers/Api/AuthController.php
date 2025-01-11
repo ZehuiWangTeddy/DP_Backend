@@ -157,7 +157,7 @@ class AuthController extends BaseController
         }
 
         return $this->dataResponse([
-            'user' => Auth::user(),
+            'user' => User::with(['profiles', 'subscriptions'])->where('user_id', $user->user_id)->first(),
             'access_token' => [
                 'token' => $token,
                 'token_type' => 'bearer',
