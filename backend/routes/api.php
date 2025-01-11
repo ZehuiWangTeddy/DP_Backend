@@ -69,9 +69,9 @@ Route::middleware('auth:api')->group(function () {
         Route::prefix('{id}/watch-list')->group(function () {
             Route::get('/', [WatchListController::class, "index"])->name('watchList.index');
             Route::post('/movie', [WatchListController::class, "addMovie"])->name('watchList.addMovie');
-            Route::delete('/movie', [WatchListController::class, "removeMovie"])->name('watchList.removeMovie');
+            Route::put('/movie', [WatchListController::class, "removeMovie"])->name('watchList.removeMovie');
             Route::post('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "addEpisode"])->name('watchList.addEpisode');
-            Route::delete('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "removeEpisode"])->name('watchList.removeEpisode');
+            Route::put('/series/{seriesId}/season/{seasonId}/episode', [WatchListController::class, "removeEpisode"])->name('watchList.removeEpisode');
         });
 
         Route::prefix('{id}/recommendations')->group(function () {
