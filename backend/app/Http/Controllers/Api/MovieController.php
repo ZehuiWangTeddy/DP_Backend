@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Movie;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -64,12 +65,14 @@ class MovieController extends BaseController
 
     public function show($id)
     {
-        $movie = Movie::findOrFail($id);
-        if (!$movie) {
+        try {
+            $movie = Movie::findOrFail($id);
+            return $this->dataResponse($movie, 'Movie retrieved successfully');
+        } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Movie not found');
         }
-        return $this->dataResponse($movie, 'Movie retrieved successfully');
     }
+
 
     public function update(Request $request, $id)
     {

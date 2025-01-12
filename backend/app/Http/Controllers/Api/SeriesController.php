@@ -33,7 +33,7 @@ class SeriesController extends BaseController
             $series = Series::create($validated);
             return $this->dataResponse($series, 'Series created successfully');
         } catch (\Exception $e) {
-            return $this->errorResponse(400, 'Invalid data');
+            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
         }
     }
 
@@ -70,7 +70,7 @@ class SeriesController extends BaseController
             $series->update($validated);
             return $this->dataResponse($series, 'Series updated successfully');
         } catch (\Exception $e) {
-            return $this->errorResponse(404, 'Series not found');
+            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
         }
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Models\Movie;
 use App\Models\Preference;
+use App\Models\Profile;
 use App\Models\Series;
 use App\Models\Episode;
 use App\Models\WatchHistory;
@@ -14,6 +15,12 @@ class RecommendationController extends BaseController
 {
     public function index($id)
     {
+        $profile = Profile::with(['user', 'preference'])->find($id);
+
+        if (!$profile) {
+            return $this->errorResponse(404, 'Profile not found');
+        }
+
         $preferences = Preference::where('profile_id', $id)->first();
 
         $watchHistory = WatchHistory::where('profile_id', $id)

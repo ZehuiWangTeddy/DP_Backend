@@ -27,7 +27,7 @@ class EpisodeController extends BaseController
 
     private function encodeFields($data)
     {
-        foreach (['available_languages'] as $field) {
+        foreach (['quality', 'genre', 'viewing_classification', 'available_languages'] as $field) {
             if (isset($data[$field])) {
                 $data[$field] = json_encode($data[$field]);
             }
@@ -52,18 +52,10 @@ class EpisodeController extends BaseController
             $validated = $this->validateEpisode($request);
             $validated = $this->encodeFields($validated);
 
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
-                $path = $file->storeAs('media/episodes', $safeName, 'public');
-                $validated['file_path'] = $path;
-            }
-
             $episode = Episode::create($validated);
 
             return $this->dataResponse([
                 'episode' => $episode,
-                'url' => isset($path) ? Storage::url($path) : null
             ], 'Episode created successfully');
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'Failed to create episode: ' . $e->getMessage());
@@ -112,12 +104,10 @@ class EpisodeController extends BaseController
     public function destroy($id)
     {
         try {
-            $episode = Episode::findOrFail($id);
-
-            if ($episode->file_path && Storage::exists($episode->file_path)) {
-                Storage::delete($episode->file_path);
+            $episode = Episode::find($id);
+            if (!$episode) {
+                return $this->errorResponse(404, 'Episode not found');
             }
-
             $episode->delete();
             return $this->messageResponse('Episode deleted successfully', 200);
         } catch (\Exception $e) {
