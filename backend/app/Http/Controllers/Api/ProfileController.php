@@ -153,6 +153,6 @@ class ProfileController extends BaseController
             return $this->errorResponse(404, 'Profile not found');
         }
         $profile->delete();
-        return $this->messageResponse(200, 'Profile deleted successfully.');
+        return $this->messageResponse( 'Profile deleted successfully.', 200);
     }
 }

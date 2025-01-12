@@ -16,54 +16,62 @@ class SeriesController extends BaseController
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:100',
-            'release_date' => 'required|date',
-            'age_restriction' => 'required|integer|min:0',
-            'genre' => 'required|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
-            'viewing_classification' => 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
-            'available_languages' => 'required|array',
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:100',
+                'release_date' => 'required|date',
+                'age_restriction' => 'required|integer|min:0',
+                'genre' => 'required|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+                'viewing_classification' => 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
+                'available_languages' => 'required|array',
+            ]);
 
-        foreach (['genre', 'available_languages'] as $field) {
-            $validated[$field] = json_encode($validated[$field]);
+            foreach (['genre', 'available_languages'] as $field) {
+                $validated[$field] = json_encode($validated[$field]);
+            }
+
+            $series = Series::create($validated);
+            return $this->dataResponse($series, 'Series created successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, 'Invalid data');
         }
-
-        $series = Series::create($validated);
-        return $this->dataResponse($series, 'Series created successfully');
     }
 
     public function show($id)
     {
-        $series = Series::findOrFail($id);
-        if (!$series) {
+        try {
+            $series = Series::findOrFail($id);
+            return $this->dataResponse($series, 'Series retrieved successfully');
+        } catch (\Exception $e) {
             return $this->errorResponse(404, 'Series not found');
         }
-        return $this->dataResponse($series, 'Series retrieved successfully');
     }
 
     public function update(Request $request, $id)
     {
-        $series = Series::findOrFail($id);
+        try {
+            $series = Series::findOrFail($id);
 
-        $validated = $request->validate([
-            'title' => 'sometimes|string|max:100',
-            'release_date' => 'sometimes|date',
-            'age_restriction' => 'sometimes|integer|min:0',
-            'genre' => 'sometimes|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
-            'viewing_classification' => 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
-            'available_languages' => 'sometimes|array',
-        ]);
+            $validated = $request->validate([
+                'title' => 'sometimes|string|max:100',
+                'release_date' => 'sometimes|date',
+                'age_restriction' => 'sometimes|integer|min:0',
+                'genre' => 'sometimes|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+                'viewing_classification' => 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
+                'available_languages' => 'sometimes|array',
+            ]);
 
-        foreach (['genre', 'available_languages'] as $field) {
-            if (isset($validated[$field])) {
-                $validated[$field] = json_encode($validated[$field]);
+            foreach (['genre', 'available_languages'] as $field) {
+                if (isset($validated[$field])) {
+                    $validated[$field] = json_encode($validated[$field]);
+                }
             }
+
+            $series->update($validated);
+            return $this->dataResponse($series, 'Series updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Series not found');
         }
-
-        $series->update($validated);
-
-        return $this->dataResponse($series, 'Series updated successfully');
     }
 
     public function destroy($id)

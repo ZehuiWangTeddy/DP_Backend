@@ -72,8 +72,12 @@ class EpisodeController extends BaseController
 
     public function show($id)
     {
-        $episode = Episode::findOrFail($id);
-        return $this->dataResponse($episode, 'Episode retrieved successfully');
+        try {
+            $episode = Episode::findOrFail($id);
+            return $this->dataResponse($episode, 'Episode retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Episode not found');
+        }
     }
 
     public function update(Request $request, $id)

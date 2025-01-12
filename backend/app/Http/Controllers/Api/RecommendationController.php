@@ -8,66 +8,90 @@ use App\Models\Preference;
 use App\Models\Series;
 use App\Models\Episode;
 use App\Models\WatchHistory;
+use Illuminate\Support\Facades\DB;
 
 class RecommendationController extends BaseController
 {
     public function index($id)
     {
-        // Retrieve the profile's preferences
-        $preferences = Preference::where('profile_id', $id)->get();
+        $preferences = Preference::where('profile_id', $id)->first();
 
-        // Extract the preferred genres
-        $preferredGenres = $preferences->pluck('genre')->toArray();
+        $watchHistory = WatchHistory::where('profile_id', $id)
+            ->where('viewing_status', 'finished')
+            ->select('movie_id', 'episode_id', DB::raw('COUNT(*) as watch_count'))
+            ->groupBy('movie_id', 'episode_id')
+            ->get();
 
-        // Retrieve the profile's watch history
-        $watchHistory = WatchHistory::where('profile_id', $id)->get(['movie_id', 'episode_id']);
+        $watchedMovieIds = $watchHistory->pluck('movie_id')->filter()->unique();
+        $watchedEpisodeIds = $watchHistory->pluck('episode_id')->filter()->unique();
 
-        // Extract watched series IDs via episode -> season -> series
-        $watchedSeriesIds = Episode::whereIn('episode_id', $watchHistory->pluck('episode_id'))
+        $watchedSeriesIds = Episode::whereIn('episode_id', $watchedEpisodeIds)
             ->join('seasons', 'episodes.season_id', '=', 'seasons.season_id')
             ->pluck('seasons.series_id')
+            ->unique()
             ->toArray();
 
-        if (empty($preferredGenres)) {
-            // If no preferences are found, use genres from watched movies and series
-            $watchedMovieGenres = Movie::whereIn('movie_id', $watchHistory->pluck('movie_id'))
-                ->pluck('genre')
-                ->toArray();
+        $movieQuery = Movie::query();
+        $seriesQuery = Series::query();
 
-            $watchedSeriesGenres = Series::whereIn('series_id', $watchedSeriesIds)
-                ->pluck('genre')
-                ->toArray();
+        if ($preferences) {
+            // Filter by user preferences
+            $preferredGenres = json_decode($preferences->genre);
+            if (!empty($preferredGenres)) {
+                $movieQuery->whereJsonContains('genre', $preferredGenres);
+                $seriesQuery->where(function($query) use ($preferredGenres) {
+                    foreach ($preferredGenres as $genre) {
+                        $query->orWhere('genre', 'like', "%$genre%");
+                    }
+                });
+            }
 
-            $preferredGenres = array_unique(array_merge($watchedMovieGenres, $watchedSeriesGenres));
+            // Filter by age restriction
+            $minAge = $preferences->minimum_age;
+            $movieQuery->where('age_restriction', '>=', $minAge);
+            $seriesQuery->where('age_restriction', '>=', $minAge);
 
-            if (empty($preferredGenres)) {
-                // If no genres are found in the watch history, recommend the most popular movies/series
-                $recommendedMovies = Movie::withCount('watchHistories')
-                    ->orderByDesc('watch_histories_count')
-                    ->take(5)
-                    ->get();
-
-                $recommendedSeries = Series::withCount(['episodes.watchHistories as watch_histories_count'])
-                    ->orderByDesc('watch_histories_count')
-                    ->take(5)
-                    ->get();
-
-                return $this->dataResponse([
-                    'movies' => $recommendedMovies,
-                    'series' => $recommendedSeries,
-                ], 'Top popular recommendations retrieved successfully');
+            // Filter by content preference
+            if ($preferences->content_preference !== 'both') {
+                if ($preferences->content_preference === 'movies') {
+                    $seriesQuery->whereNull('series_id');
+                } elseif ($preferences->content_preference === 'series') {
+                    $movieQuery->whereNull('movie_id');
+                }
             }
         }
 
-        // Recommend movies based on preferred genres, excluding watched movies
-        $recommendedMovies = Movie::whereIn('genre', $preferredGenres)
-            ->whereNotIn('movie_id', $watchHistory->pluck('movie_id'))
-            ->get();
+        // Exclude watched content
+        $movieQuery->whereNotIn('movie_id', $watchedMovieIds);
+        $seriesQuery->whereNotIn('series_id', $watchedSeriesIds);
 
-        // Recommend series based on preferred genres, excluding watched series
-        $recommendedSeries = Series::whereIn('genre', $preferredGenres)
-            ->whereNotIn('series_id', $watchedSeriesIds)
-            ->get();
+        // Get recommendation results
+        $recommendedMovies = $movieQuery->take(10)->get();
+        $recommendedSeries = $seriesQuery->take(10)->get();
+
+        // If not enough recommendations, add popular content
+        if ($recommendedMovies->count() < 5 || $recommendedSeries->count() < 5) {
+            $popularMovies = Movie::whereNotIn('movie_id', $watchedMovieIds)
+                ->join('watchhistories', 'movies.movie_id', '=', 'watchhistories.movie_id')
+                ->select('movies.*', DB::raw('COUNT(watchhistories.movie_id) as watch_count'))
+                ->groupBy('movies.movie_id')
+                ->orderByDesc('watch_count')
+                ->take(5)
+                ->get();
+
+            $popularSeries = Series::whereNotIn('series_id', $watchedSeriesIds)
+                ->join('seasons', 'series.series_id', '=', 'seasons.series_id')
+                ->join('episodes', 'seasons.season_id', '=', 'episodes.season_id')
+                ->join('watchhistories', 'episodes.episode_id', '=', 'watchhistories.episode_id')
+                ->select('series.*', DB::raw('COUNT(DISTINCT watchhistories.profile_id) as viewer_count'))
+                ->groupBy('series.series_id')
+                ->orderByDesc('viewer_count')
+                ->take(5)
+                ->get();
+
+            $recommendedMovies = $recommendedMovies->merge($popularMovies)->unique('movie_id')->take(10);
+            $recommendedSeries = $recommendedSeries->merge($popularSeries)->unique('series_id')->take(10);
+        }
 
         return $this->dataResponse([
             'movies' => $recommendedMovies,

@@ -14,28 +14,43 @@ class SubtitleController extends BaseController
     // Store a new subtitle
     public function store(Request $request, $episodeId = null, $id = null)
     {
-        $validator = Validator::make($request->all(), [
-            'language' => 'required|string',
-            'file' => 'required|mimes:vtt,srt',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'language' => 'required|string',
+                // 'file' => 'required|mimes:vtt,srt',
+                'file' => 'required',
+            ]);
 
-        if ($validator->fails()) {
-            return $this->errorResponse(400, $validator->errors()->first());
+            if ($validator->fails()) {
+                return $this->errorResponse(400, $validator->errors()->first());
+            }
+
+            $subtitle = new Subtitle();
+            $subtitle->language = $request->language;
+            // $subtitle->file_path = $request->file('file')->store('subtitles');
+            $subtitle->subtitle_path = $request->file;
+
+            if ($episodeId) {
+                $episode = Episode::findOrFail($episodeId);
+                $subtitle->episode_id = $episodeId;
+                if (!$episode->subtitles()->save($subtitle)) {
+                    throw new \Exception('Failed to associate subtitle with episode');
+                }
+            } elseif ($id) {
+                $movie = Movie::findOrFail($id);
+                $subtitle->movie_id = $id;
+                if (!$movie->subtitles()->save($subtitle)) {
+                    throw new \Exception('Failed to associate subtitle with movie');
+                }
+            } else {
+                throw new \Exception('Episode ID or Movie ID is required');
+            }
+
+            return $this->messageResponse('Subtitle successfully added.', 201);
+
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'Failed to store subtitle: ' . $e->getMessage());
         }
-
-        $subtitle = new Subtitle();
-        $subtitle->language = $request->language;
-        $subtitle->file_path = $request->file('file')->store('subtitles');
-
-        if ($episodeId) {
-            $episode = Episode::findOrFail($episodeId);
-            $episode->subtitles()->save($subtitle);
-        } elseif ($id) {
-            $movie = Movie::findOrFail($id);
-            $movie->subtitles()->save($subtitle);
-        }
-
-        return $this->messageResponse('Subtitle successfully added.', 201);
     }
 
     // Retrieve all subtitles for a specific episode or movie
@@ -60,35 +75,46 @@ class SubtitleController extends BaseController
     // Update an existing subtitle
     public function update(Request $request, $subtitleId)
     {
-        $validator = Validator::make($request->all(), [
-            'language' => 'sometimes|required|string',
-            'file' => 'sometimes|required|mimes:vtt,srt',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'language' => 'sometimes|required|string',
+                // 'file' => 'sometimes|required|mimes:vtt,srt',
+                'file_path' => 'sometimes|string',
+            ]);
 
-        if ($validator->fails()) {
-            return $this->errorResponse(400, $validator->errors()->first());
+            if ($validator->fails()) {
+                return $this->errorResponse(400, $validator->errors()->first());
+            }
+
+            $subtitle = Subtitle::findOrFail($subtitleId);
+
+            if ($request->has('language')) {
+                $subtitle->language = $request->language;
+            }
+
+            if ($request->hasFile('file_path')) {
+                // $subtitle->subtitle_path = $request->file('file_path')->store('subtitles');
+                $subtitle->subtitle_path = $request->file_path;
+            }
+
+            $subtitle->save();
+
+            return $this->messageResponse('Subtitle successfully updated.');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Subtitle not found');
         }
-
-        $subtitle = Subtitle::findOrFail($subtitleId);
-
-        if ($request->has('language')) {
-            $subtitle->language = $request->language;
-        }
-        if ($request->hasFile('file')) {
-            $subtitle->file_path = $request->file('file')->store('subtitles');
-        }
-
-        $subtitle->save();
-
-        return $this->messageResponse('Subtitle successfully updated.');
     }
 
     // Delete a subtitle
     public function destroy($subtitleId)
     {
-        $subtitle = Subtitle::findOrFail($subtitleId);
-        $subtitle->delete();
+        try {
+            $subtitle = Subtitle::findOrFail($subtitleId);
+            $subtitle->delete();
 
-        return $this->messageResponse('Subtitle successfully deleted.');
+            return $this->messageResponse('Subtitle successfully deleted.');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Subtitle not found');
+        }
     }
 }

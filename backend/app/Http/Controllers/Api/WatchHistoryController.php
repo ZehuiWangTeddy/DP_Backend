@@ -66,7 +66,17 @@ class WatchHistoryController extends BaseController
         DB::beginTransaction();
 
         try {
-            // Create the watch history record in the database
+            // watched time stamp finish cannot early than start
+            $existingHistory = WatchHistory::where([
+                'profile_id' => $profileId,
+                'movie_id' => $validated['movie_id'],
+            ])->first();
+
+            if ($existingHistory && $existingHistory->watched_time_stamp >= $validated['watched_time_stamp']) {
+                return $this->errorResponse(400, 'watched time stamp finish canot early than start');
+            }
+
+            // Create or update viewing history
             $watchHistory = WatchHistory::firstOrNew([
                 'profile_id' => $profileId,
                 'movie_id' => $validated['movie_id'],
@@ -80,9 +90,7 @@ class WatchHistoryController extends BaseController
             $movieDurationInSeconds = strtotime($movie->duration) - strtotime('TODAY');
             $watchHistory->viewing_status = $resumeToInSeconds < $movieDurationInSeconds ? 'paused' : 'finished';
 
-            if (!$watchHistory->exists || $watchHistory->viewing_status === 'finished') {
-                $watchHistory->times_watched = ($watchHistory->times_watched ?? 0) + 1;
-            }
+            $watchHistory->times_watched = ($watchHistory->times_watched ?? 0) + 1;
 
             $watchHistory->save();
 
@@ -205,6 +213,17 @@ class WatchHistoryController extends BaseController
         DB::beginTransaction();
 
         try {
+            // Check if viewing history exists
+            $existingHistory = WatchHistory::where([
+                'profile_id' => $profileId,
+                'episode_id' => $validated['episode_id'],
+            ])->first();
+
+            if ($existingHistory && $existingHistory->watched_time_stamp >= $validated['watched_time_stamp']) {
+                return $this->errorResponse(400, 'The new viewing time must be after the last viewing time');
+            }
+
+            // Create or update viewing history
             $watchHistory = WatchHistory::firstOrNew([
                 'profile_id' => $profileId,
                 'episode_id' => $validated['episode_id'],
@@ -219,9 +238,7 @@ class WatchHistoryController extends BaseController
 
             $watchHistory->viewing_status = $resumeToInSeconds < $episodeDurationInSeconds ? 'paused' : 'finished';
 
-            if (!$watchHistory->exists || $watchHistory->viewing_status === 'finished') {
-                $watchHistory->times_watched = ($watchHistory->times_watched ?? 0) + 1;
-            }
+            $watchHistory->times_watched = ($watchHistory->times_watched ?? 0) + 1;
 
             $watchHistory->save();
 

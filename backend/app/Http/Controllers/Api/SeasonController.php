@@ -29,15 +29,19 @@ class SeasonController extends BaseController
      */
     public function store(Request $request, $seriesId)
     {
-        $validated = $request->validate([
-            'season_number' => 'required|integer|min:1',
-            'release_date' => 'required|date',
-        ]);
+        try {
+            $validated = $request->validate([
+                'season_number' => 'required|integer|min:1',
+                'release_date' => 'required|date',
+            ]);
 
-        $validated['series_id'] = $seriesId;
-        $season = Season::create($validated);
+            $validated['series_id'] = $seriesId;
+            $season = Season::create($validated);
 
-        return $this->dataResponse($season, 'Season created successfully');
+            return $this->dataResponse($season, 'Season created successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, 'Invalid data');
+        }
     }
 
     /**
@@ -45,17 +49,21 @@ class SeasonController extends BaseController
      */
     public function update(Request $request, $seriesId, $seasonId)
     {
-        $validated = $request->validate([
-            'season_number' => 'sometimes|integer|min:1',
-            'release_date' => 'sometimes|date',
-        ]);
+        try {
+            $validated = $request->validate([
+                'season_number' => 'sometimes|integer|min:1',
+                'release_date' => 'sometimes|date',
+            ]);
 
-        $season = Season::where('series_id', $seriesId)
-            ->where('season_id', $seasonId)
-            ->firstOrFail();
-        $season->update($validated);
+            $season = Season::where('series_id', $seriesId)
+                ->where('season_id', $seasonId)
+                ->firstOrFail();
+            $season->update($validated);
 
-        return $this->dataResponse($season);
+            return $this->dataResponse($season, 'Season updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Season not found');
+        }
     }
 
     /**
@@ -63,11 +71,15 @@ class SeasonController extends BaseController
      */
     public function destroy($seriesId, $seasonId)
     {
-        $season = Season::where('series_id', $seriesId)
-            ->where('season_id', $seasonId)
-            ->firstOrFail();
-        $season->delete();
+        try {
+            $season = Season::where('series_id', $seriesId)
+                ->where('season_id', $seasonId)
+                ->firstOrFail();
+            $season->delete();
 
-        return $this->messageResponse('Season deleted successfully');
+            return $this->messageResponse('Season deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(404, 'Season not found');
+        }
     }
 }
