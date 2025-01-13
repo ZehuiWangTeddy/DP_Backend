@@ -17,12 +17,17 @@ class WatchListController extends BaseController
 {
     public function index($profileId)
     {
+        $profile = Profile::find($profileId);
+        if (!$profile) {
+            return $this->errorResponse(404, 'Profile not found');
+        }
+
         $watchList = Watchlist::where('profile_id', $profileId)
             ->where('viewing_status', '!=', 'finished')
             ->get();
 
         if ($watchList->isEmpty()) {
-            return $this->errorResponse(404, 'Watch list not found');
+            return $this->dataResponse( 'Watch list is finished or you did not add anything to watch list');
         }
 
         return $this->dataResponse($watchList, 'Watch list retrieved successfully');
@@ -83,7 +88,7 @@ class WatchListController extends BaseController
         }
     }
 
-    public function removeMovie(Request $request, $profileId)
+    public function finishMovie(Request $request, $profileId)
     {
         // Validate input with additional checks
         $validator = Validator::make($request->all(), [
@@ -137,10 +142,26 @@ class WatchListController extends BaseController
         }
     }
 
+    public function removeMovie($profileId, $movieId)
+    {
+        // Check if the profile exists
+        if (!Profile::find($profileId)) {
+            return $this->errorResponse(404, 'Profile not found.');
+        }
+
+        // Attempt to delete the movie from the watchlist
+        if (!Watchlist::where('profile_id', $profileId)->where('movie_id', $movieId)->delete()) {
+            return $this->errorResponse(404, 'Movie not found in the watchlist.');
+        }
+
+        return $this->messageResponse('Movie removed from watchlist successfully.', 200);
+    }
+
+
     public function addEpisode(Request $request, $profileId, $seasonId, $seriesId)
     {
         $episodes = Episode::where('season_id', $seasonId)->get();
-        if ($episodes->isEmpty()) {
+        if ($episodes ->isEmpty()) {
             return $this->errorResponse(404, 'Episodes not found.');
         }
 
@@ -197,7 +218,7 @@ class WatchListController extends BaseController
         }
     }
 
-    public function removeEpisode(Request $request,  $profileId, $seasonId, $seriesId)
+    public function finishEpisode(Request $request,  $profileId, $seasonId, $seriesId)
     {
         $episodes = Episode::where('season_id', $seasonId)->get();
         if ($episodes->isEmpty()) {
@@ -252,7 +273,22 @@ class WatchListController extends BaseController
 
             Log::error($e);
 
-            return $this->errorResponse(500, 'Failed to remove the episode. Please try again later.');
+            return $this->errorResponse(500, 'Failed to hide the episode. Please try again later.');
         }
+    }
+
+    public function removeEpisode($profileId, $seasonId, $seriesId, $episodeId)
+    {
+        // Check if the profile exists
+        if (!Profile::find($profileId)) {
+            return $this->errorResponse(404, 'Profile not found.');
+        }
+
+        // Attempt to delete the episode from the watchlist
+        if (!Watchlist::where('profile_id', $profileId)->where('episode_id', $episodeId)->delete()) {
+            return $this->errorResponse(404, 'Episode not found in the watchlist.');
+        }
+
+        return $this->messageResponse('Episode removed from watchlist successfully.', 200);
     }
 }

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class SubtitleController extends BaseController
 {
     // Store a new subtitle
-    public function store(Request $request, $episodeId = null, $id = null)
+    public function store(Request $request, $series_id = null, $season_id = null, $episodeId = null, $id = null)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -46,7 +46,7 @@ class SubtitleController extends BaseController
                 throw new \Exception('Episode ID or Movie ID is required');
             }
 
-            return $this->messageResponse('Subtitle successfully added.', 201);
+            return $this->dataResponse($subtitle, 'Subtitle successfully added.');
 
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'Failed to store subtitle: ' . $e->getMessage());
@@ -54,7 +54,7 @@ class SubtitleController extends BaseController
     }
 
     // Retrieve all subtitles for a specific episode or movie
-    public function index($episodeId = null, $id = null)
+    public function index($series_id = null, $season_id = null, $episodeId = null, $id = null)
     {
         try {
             if ($episodeId) {
@@ -69,11 +69,11 @@ class SubtitleController extends BaseController
         } catch (\Exception $e) {
             return $this->errorResponse(400, 'Failed to retrieve subtitles: ' . $e->getMessage());
         }
-        return $this->dataResponse($subtitles, "Episode retrieved successfully");
+        return $this->dataResponse($subtitles, "Subtitle retrieved successfully");
     }
 
     // Update an existing subtitle
-    public function update(Request $request, $subtitleId)
+    public function update(Request $request,$series_id = null, $season_id = null, $episodeId = null, $subtitleId)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -99,7 +99,7 @@ class SubtitleController extends BaseController
 
             $subtitle->save();
 
-            return $this->messageResponse('Subtitle successfully updated.');
+            return $this->dataResponse($subtitle,'Subtitle successfully updated.');
         } catch (\Exception $e) {
             return $this->errorResponse(404, 'Subtitle not found');
         }

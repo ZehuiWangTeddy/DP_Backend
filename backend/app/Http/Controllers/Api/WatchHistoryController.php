@@ -16,10 +16,15 @@ class WatchHistoryController extends BaseController
 {
     public function index($profileId)
     {
+        $profile = Profile::find($profileId);
+        if (!$profile) {
+            return $this->errorResponse(404, 'Profile not found');
+        }
+
         $watchHistory = WatchHistory::where('profile_id', $profileId)->get();
 
-        if (!$watchHistory) {
-            return $this->errorResponse('Watch history not found', 404);
+        if ($watchHistory->isEmpty()) {
+            return $this->dataResponse('Did not watching movie or episode yet' );
         }
 
         return $this->dataResponse($watchHistory, 'Watch history retrieved successfully');
@@ -169,6 +174,21 @@ class WatchHistoryController extends BaseController
         }
     }
 
+    public function removeMovie($profileId, $movieId)
+    {
+        // Check if the profile exists
+        if (!Profile::find($profileId)) {
+            return $this->errorResponse(404, 'Profile not found.');
+        }
+
+        // Attempt to delete the movie from the watchlist
+        if (!WatchHistory::where('profile_id', $profileId)->where('movie_id', $movieId)->delete()) {
+            return $this->errorResponse(404, 'Movie not found in the watch history.');
+        }
+
+        return $this->messageResponse('Movie removed from watch history successfully.', 200);
+    }
+
 
     public function startEpisode(Request $request, $profileId, $seasonId, $seriesId)
     {
@@ -283,7 +303,7 @@ class WatchHistoryController extends BaseController
 
         // Check if the profile has watched this movie
         $watchHistory = WatchHistory::where('profile_id', $profileId)
-            ->where('movie_id', $validated['episode_id'])
+            ->where('episode_id', $validated['episode_id'])
             ->first();
 
         if (!$watchHistory) {
@@ -316,5 +336,20 @@ class WatchHistoryController extends BaseController
 
             return $this->errorResponse(500, 'Failed to finish the episode. Please try again later.');
         }
+    }
+
+    public function removeEpisode($profileId, $seasonId, $seriesId, $episodeId)
+    {
+        // Check if the profile exists
+        if (!Profile::find($profileId)) {
+            return $this->errorResponse(404, 'Profile not found.');
+        }
+
+        // Attempt to delete the episode from the watchlist
+        if (!WatchHistory::where('profile_id', $profileId)->where('episode_id', $episodeId)->delete()) {
+            return $this->errorResponse(404, 'Episode not found in the watch history.');
+        }
+
+        return $this->messageResponse('Episode removed from watch history successfully.', 200);
     }
 }
