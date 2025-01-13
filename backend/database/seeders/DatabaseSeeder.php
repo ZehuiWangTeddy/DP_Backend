@@ -34,14 +34,19 @@ class DatabaseSeeder extends Seeder
         // Seed the subscriptions table
         Subscription::factory(10)->create();
 
-        // Seed the series table
-        Series::factory(5)->create();
-
-        // Seed the seasons table
-        Season::factory(15)->create();
-
-        // Seed the episodes table
-        Episode::factory(50)->create();
+        // Create series with their seasons and episodes
+        Series::factory(5)
+            ->has(
+                Season::factory()
+                    ->count(3) // 3 seasons per series
+                    ->sequence(fn ($sequence) => ['season_number' => $sequence->index + 1])
+                    ->has(
+                        Episode::factory()
+                            ->count(10) // 10 episodes per season
+                            ->sequence(fn ($sequence) => ['episode_number' => $sequence->index + 1])
+                    )
+            )
+            ->create();
 
         // Seed the movies table
         Movie::factory(20)->create();
