@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Series;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SeriesController extends BaseController
 {
@@ -32,8 +34,10 @@ class SeriesController extends BaseController
 
             $series = Series::create($validated);
             return $this->dataResponse($series, 'Series created successfully');
+        } catch (ValidationException $e) {
+            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
         } catch (\Exception $e) {
-            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
 
@@ -42,7 +46,7 @@ class SeriesController extends BaseController
         try {
             $series = Series::findOrFail($id);
             return $this->dataResponse($series, 'Series retrieved successfully');
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Series not found');
         }
     }
@@ -50,7 +54,10 @@ class SeriesController extends BaseController
     public function update(Request $request, $id)
     {
         try {
-            $series = Series::findOrFail($id);
+            $series = Series::find($id);
+            if (!$series) {
+                return $this->errorResponse(404, 'Series not found');
+            }
 
             $validated = $request->validate([
                 'title' => 'sometimes|string|max:100',
@@ -69,8 +76,10 @@ class SeriesController extends BaseController
 
             $series->update($validated);
             return $this->dataResponse($series, 'Series updated successfully');
+        } catch (ValidationException $e) {
+            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
         } catch (\Exception $e) {
-            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
 

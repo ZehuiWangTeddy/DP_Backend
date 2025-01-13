@@ -48,11 +48,6 @@ class MovieController extends BaseController
             $validated = $this->validateMovie($request);
             $validated = $this->encodeFields($validated);
 
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
-            }
-
             $movie = Movie::create($validated);
 
             return $this->dataResponse([
@@ -77,21 +72,13 @@ class MovieController extends BaseController
     public function update(Request $request, $id)
     {
         try {
-            $movie = Movie::findOrFail($id);
+            $movie = Movie::find($id);
+            if (!$movie) {
+                return $this->errorResponse(404, 'Movie not found');
+            }
+
             $validated = $this->validateMovie($request, true);
             $validated = $this->encodeFields($validated);
-
-            if ($request->hasFile('file')) {
-                // Delete old file if it exists
-                if ($movie->file_path && Storage::exists($movie->file_path)) {
-                    Storage::delete($movie->file_path);
-                }
-
-                $file = $request->file('file');
-                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "", $file->getClientOriginalName());
-                $path = $file->storeAs('media/movies', $safeName, 'public');
-                $validated['file_path'] = $path;
-            }
 
             $movie->update($validated);
             return $this->dataResponse($movie, 'Movie updated successfully');

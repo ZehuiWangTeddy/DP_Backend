@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Episode;
+use App\Models\Season;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class EpisodeController extends BaseController
 {
@@ -38,12 +41,17 @@ class EpisodeController extends BaseController
     public function index(Request $request, $seriesId, $seasonId)
     {
         try {
-            $episodes = Episode::where('season_id', $seasonId)->get();
-            return $this->dataResponse($episodes, 'Episodes retrieved successfully');
-        } catch (\Exception $e) {
-            return $this->errorResponse(400, 'Failed to retrieve episodes: ' . $e->getMessage());
-        }
+            $season = Season::where('series_id', $seriesId)->findOrFail($seasonId);
 
+            $perPage = $request->query('per_page', 10);
+            $episodes = Episode::where('season_id', $seasonId)->paginate($perPage);
+
+            return $this->paginationResponse($episodes, 'Episodes retrieved successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(404, 'Season not found or does not belong to the specified series');
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'Failed to retrieve episodes: ' . $e->getMessage());
+        }
     }
 
     public function store(Request $request)
@@ -57,8 +65,10 @@ class EpisodeController extends BaseController
             return $this->dataResponse([
                 'episode' => $episode,
             ], 'Episode created successfully');
+        } catch (ValidationException $e) {
+            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
         } catch (\Exception $e) {
-            return $this->errorResponse(500, 'Failed to create episode: ' . $e->getMessage());
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
 
@@ -67,8 +77,10 @@ class EpisodeController extends BaseController
         try {
             $episode = Episode::findOrFail($id);
             return $this->dataResponse($episode, 'Episode retrieved successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(404, 'Season not found or does not belong to the specified series');
         } catch (\Exception $e) {
-            return $this->errorResponse(404, 'Episode not found');
+            return $this->errorResponse(500, 'Failed to retrieve episodes: ' . $e->getMessage());
         }
     }
 

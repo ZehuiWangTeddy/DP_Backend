@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Models\Season;
 use App\Models\Series;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SeasonController extends BaseController
 {
@@ -16,13 +18,17 @@ class SeasonController extends BaseController
     {
         try {
             $series = Series::findOrFail($seriesId);
-            $seasons = $series->seasons;
+
+            $seasons = $series->seasons ?? [];
 
             return $this->dataResponse($seasons, 'Seasons retrieved successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(404, 'Series not found');
         } catch (\Exception $e) {
-            return $this->errorResponse(400, 'Failed to retrieve seasons: no series found');
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Store a newly created season.
@@ -35,14 +41,23 @@ class SeasonController extends BaseController
                 'release_date' => 'required|date',
             ]);
 
+            $series = Series::find($seriesId);
+            if (!$series) {
+                return $this->errorResponse(404, 'Series not found');
+            }
+
             $validated['series_id'] = $seriesId;
+
             $season = Season::create($validated);
 
             return $this->dataResponse($season, 'Season created successfully');
+        } catch (ValidationException $e) {
+            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
         } catch (\Exception $e) {
-            return $this->errorResponse(400, 'Invalid data');
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Update the specified season.
@@ -58,11 +73,16 @@ class SeasonController extends BaseController
             $season = Season::where('series_id', $seriesId)
                 ->where('season_id', $seasonId)
                 ->firstOrFail();
+
             $season->update($validated);
 
             return $this->dataResponse($season, 'Season updated successfully');
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Season not found');
+        } catch (ValidationException $e) {
+            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
 
@@ -75,11 +95,15 @@ class SeasonController extends BaseController
             $season = Season::where('series_id', $seriesId)
                 ->where('season_id', $seasonId)
                 ->firstOrFail();
+
             $season->delete();
 
             return $this->messageResponse('Season deleted successfully');
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Season not found');
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
+
 }
