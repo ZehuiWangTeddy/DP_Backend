@@ -94,8 +94,8 @@ Route::middleware('auth:api')->group(function () {
         Route::prefix('/{id}/subtitles')->group(function () {
             Route::post('/', [SubtitleController::class, "store"])->name('movies.subtitles.store');
             Route::get('/', [SubtitleController::class, "index"])->name('movies.subtitles.index');
-            Route::put('/', [SubtitleController::class, "update"])->name('movies.subtitles.update');
-            Route::delete('/', [SubtitleController::class, "destroy"])->name('movies.subtitles.destroy');
+            Route::put('/{id}', [SubtitleController::class, "update"])->name('movies.subtitles.update');
+            Route::delete('/{id}', [SubtitleController::class, "destroy"])->name('movies.subtitles.destroy');
         });
     });
 
