@@ -39,7 +39,7 @@ class UserController extends BaseController
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse(404, 'User not found');
         }
 
         try {
