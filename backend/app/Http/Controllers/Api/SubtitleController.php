@@ -18,7 +18,7 @@ class SubtitleController extends BaseController
             $validator = Validator::make($request->all(), [
                 'language' => 'required|string',
                 // 'file' => 'required|mimes:vtt,srt',
-                'file' => 'required',
+                'file_path' => 'required',
             ]);
 
             if ($validator->fails()) {

@@ -223,7 +223,7 @@ class AuthController extends BaseController
         $validator = Validator::make($request->all(), [
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -253,7 +253,7 @@ class AuthController extends BaseController
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'password' => 'required|confirmed|min:8',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {

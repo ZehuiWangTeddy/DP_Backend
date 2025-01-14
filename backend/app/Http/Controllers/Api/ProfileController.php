@@ -83,7 +83,7 @@ class ProfileController extends BaseController
             // Return the response with subscription data
             return $this->dataResponse([
                 'profile' => $profile->only(['profile_id', 'user_id', 'name', 'photo_path', 'child_profile', 'date_of_birth', 'language']),
-            ], "Subscription created successfully.");
+            ], "Profile created successfully.");
         } catch (\Exception $e) {
             // If anything goes wrong, roll back the transaction
             DB::rollBack();
