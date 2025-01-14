@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -40,16 +42,23 @@ class UserController extends BaseController
             return $this->errorResponse('User not found', 404);
         }
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:100',
-            'address' => 'sometimes|string',
-            'email' => [
-                'sometimes', 'email', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id'),
-            ],
-        ]);
-
-        $user->update($validated);
-        return $this->dataResponse($user);
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:100',
+                'address' => 'sometimes|string',
+                'email' => [
+                    'sometimes', 'email', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id'),
+                ],
+            ]);
+            $user->update($validated);
+            return $this->dataResponse($user);
+        }
+        catch (ValidationException $e) {
+            return $this->errorResponse(400, $e->errors());
+        }
+        catch (Exception $e) {
+            return $this->errorResponse(500, 'Updated failed. Please try again later.');
+        }
     }
 
     /**

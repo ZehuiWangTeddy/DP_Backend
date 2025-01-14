@@ -77,7 +77,7 @@ class EpisodeController extends BaseController
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Season not found or does not belong to the specified series');
         } catch (ValidationException $e) {
-            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+            return $this->errorResponse(400, 'Please check your input ' . $e->getMessage());
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }

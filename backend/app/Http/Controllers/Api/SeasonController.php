@@ -52,7 +52,7 @@ class SeasonController extends BaseController
 
             return $this->dataResponse($season, 'Season created successfully');
         } catch (ValidationException $e) {
-            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+            return $this->errorResponse(400, 'Please check your input: ' . $e->getMessage());
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
@@ -80,7 +80,7 @@ class SeasonController extends BaseController
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(404, 'Season not found');
         } catch (ValidationException $e) {
-            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+            return $this->errorResponse(400, 'Please check your input: ' . $e->getMessage());
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }

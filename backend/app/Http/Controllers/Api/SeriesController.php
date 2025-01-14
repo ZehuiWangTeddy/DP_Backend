@@ -35,7 +35,7 @@ class SeriesController extends BaseController
             $series = Series::create($validated);
             return $this->dataResponse($series, 'Series created successfully');
         } catch (ValidationException $e) {
-            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+            return $this->errorResponse(400, 'Please check your input ' . $e->getMessage());
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
@@ -77,7 +77,7 @@ class SeriesController extends BaseController
             $series->update($validated);
             return $this->dataResponse($series, 'Series updated successfully');
         } catch (ValidationException $e) {
-            return $this->errorResponse(422, 'Validation error: ' . $e->getMessage());
+            return $this->errorResponse(400, 'Please check your input ' . $e->getMessage());
         } catch (\Exception $e) {
             return $this->errorResponse(500, 'An unexpected error occurred: ' . $e->getMessage());
         }
