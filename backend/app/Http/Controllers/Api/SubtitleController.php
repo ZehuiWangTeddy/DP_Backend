@@ -12,9 +12,13 @@ use Illuminate\Support\Facades\Validator;
 class SubtitleController extends BaseController
 {
     // Store a new subtitle
-    public function store(Request $request, $series_id = null, $season_id = null, $episodeId = null, $id = null)
+    public function store(Request $request)
     {
         try {
+
+            $episodeId = $request->route('episodeId');
+            $movieId = $request->route('moiveId');
+
             $validator = Validator::make($request->all(), [
                 'language' => 'required|string',
                 // 'file' => 'required|mimes:vtt,srt',
@@ -28,17 +32,41 @@ class SubtitleController extends BaseController
             $subtitle = new Subtitle();
             $subtitle->language = $request->language;
             // $subtitle->file_path = $request->file('file')->store('subtitles');
-            $subtitle->subtitle_path = $request->file;
+            $subtitle->subtitle_path = $request->file_path;
 
             if ($episodeId) {
-                $episode = Episode::findOrFail($episodeId);
+                // Check if the episode exists
+                $episode = Episode::find($episodeId);
+
+                if (!$episode) {
+                    return $this->errorResponse(404, 'Episode not found.');
+                }
+
+                // Verify that the episode belongs to the correct season and series
+                $season_id = $request->route('seasonId');
+                $series_id = $request->route('seriesId');
+
+                if ($season_id && $episode->season_id != $season_id) {
+                    return $this->errorResponse(400, 'The episode does not match the provided season.');
+                }
+
+                if ($series_id && $episode->season->series_id != $series_id) {
+                    return $this->errorResponse(400, 'The episode does not match the provided series.');
+                }
+
                 $subtitle->episode_id = $episodeId;
                 if (!$episode->subtitles()->save($subtitle)) {
                     throw new \Exception('Failed to associate subtitle with episode');
                 }
-            } elseif ($id) {
-                $movie = Movie::findOrFail($id);
-                $subtitle->movie_id = $id;
+            } elseif ($movieId) {
+                // Check if the movie exists
+                $movie = Movie::find($movieId);
+
+                if (!$movie) {
+                    return $this->errorResponse(404, 'Movie not found.');
+                }
+
+                $subtitle->movie_id = $movieId;
                 if (!$movie->subtitles()->save($subtitle)) {
                     throw new \Exception('Failed to associate subtitle with movie');
                 }
@@ -54,28 +82,64 @@ class SubtitleController extends BaseController
     }
 
     // Retrieve all subtitles for a specific episode or movie
-    public function index($series_id = null, $season_id = null, $episodeId = null, $id = null)
+    public function index(Request $request)
     {
         try {
+            $episodeId = $request->route('episodeId');
+            $movieId = $request->route('movieId');
+
+            $subtitles = []; // Initialize an empty array or collection to store the subtitles
+
             if ($episodeId) {
-                $episode = Episode::findOrFail($episodeId);
+                // Check if the episode exists
+                $episode = Episode::find($episodeId);
+
+                if (!$episode) {
+                    return $this->errorResponse(404, 'Episode not found.');
+                }
+
+                // Verify that the episode belongs to the correct season and series
+                $season_id = $request->route('seasonId');
+                $series_id = $request->route('seriesId');
+
+                if ($season_id && $episode->season_id != $season_id) {
+                    return $this->errorResponse(400, 'The episode does not match the provided season.');
+                }
+
+                if ($series_id && $episode->season->series_id != $series_id) {
+                    return $this->errorResponse(400, 'The episode does not match the provided series.');
+                }
+
+                // Retrieve subtitles for the episode
                 $subtitles = $episode->subtitles;
-            } elseif ($id) {
-                $movie = Movie::findOrFail($id);
+
+            } elseif ($movieId) {
+                // Check if the movie exists
+                $movie = Movie::find($movieId);
+
+                if (!$movie) {
+                    return $this->errorResponse(404, 'Movie not found.');
+                }
+
+                // Retrieve subtitles for the movie
                 $subtitles = $movie->subtitles;
             } else {
-                return $this->messageResponse('Episode or Movie not specified.', 400);
+                throw new \Exception('Episode ID or Movie ID is required');
             }
+
+            return $this->dataResponse($subtitles, "Subtitle retrieved successfully");
+
         } catch (\Exception $e) {
             return $this->errorResponse(400, 'Failed to retrieve subtitles: ' . $e->getMessage());
         }
-        return $this->dataResponse($subtitles, "Subtitle retrieved successfully");
     }
 
     // Update an existing subtitle
-    public function update(Request $request,$series_id = null, $season_id = null, $episodeId = null, $subtitleId)
+    public function update(Request $request)
     {
         try {
+            $subtitleId = $request->route('subtitleId');
+
             $validator = Validator::make($request->all(), [
                 'language' => 'sometimes|required|string',
                 // 'file' => 'sometimes|required|mimes:vtt,srt',
@@ -106,9 +170,10 @@ class SubtitleController extends BaseController
     }
 
     // Delete a subtitle
-    public function destroy($subtitleId)
+    public function destroy(Request $request)
     {
         try {
+            $subtitleId = $request->route('subtitleId');
             $subtitle = Subtitle::findOrFail($subtitleId);
             $subtitle->delete();
 

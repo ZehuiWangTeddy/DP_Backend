@@ -36,9 +36,6 @@ class SubscriptionController extends BaseController
 
         $validated = $validator->safe();
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Create the new subscription record in the database
             $subscription = Subscription::create([
@@ -51,16 +48,11 @@ class SubscriptionController extends BaseController
                 'payment_method' => $validated['payment_method'],
             ]);
 
-            // Commit the transaction after successful user creation
-            DB::commit();
-
             // Return the response with subscription data
             return $this->dataResponse([
                 'subscription' => $subscription->only(['subscription_id','user_id', 'name', 'start_date', 'end_date', 'status', 'payment_method']),
             ], "Subscription created successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure
@@ -96,22 +88,15 @@ class SubscriptionController extends BaseController
 
         $validated = $validator->safe();
 
-        // Start database transaction
-        DB::beginTransaction();
         try {
             // Update the subscription record in the database
             $subscription->update($validated->toArray());
-
-            // Commit the transaction after successful update
-            DB::commit();
 
             // Return the response with subscription data
             return $this->dataResponse([
                 'subscription' => $subscription->only(['subscription_id','user_id', 'name', 'start_date', 'end_date', 'status', 'payment_method']),
             ], "Subscription updated successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure

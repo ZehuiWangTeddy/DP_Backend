@@ -85,9 +85,6 @@ class PreferenceController extends BaseController
         // Convert genre to JSON format
         $validated['genre'] = json_encode($validated['genre']);
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Create the preference record in the database
             $preference = Preference::create([
@@ -98,16 +95,11 @@ class PreferenceController extends BaseController
                 'minimum_age' => $validated['minimum_age'],
             ]);
 
-            // Commit the transaction
-            DB::commit();
-
             // Return success response
             return $this->dataResponse([
                 'preference' => $preference->only(['preference_id', 'profile_id', 'content_type', 'content_preference', 'genre', 'minimum_age']),
             ], "Preference created successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 
@@ -172,23 +164,15 @@ class PreferenceController extends BaseController
             $validated['genre'] = json_encode($validated['genre']);
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Update the preference record in the database
             $preference->update($validated);
-
-            // Commit the transaction after successful update
-            DB::commit();
 
             // Return the response with updated preference data
             return $this->dataResponse([
                 'preference' => $preference->only(['preference_id', 'profile_id', 'content_type', 'content_preference', 'genre', 'minimum_age']),
             ], "Preference updated successfully.");
         } catch (\Exception $e) {
-            // Roll back the transaction in case of failure
-            DB::rollBack();
 
             Log::error($e);
             // Return error response

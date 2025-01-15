@@ -58,8 +58,6 @@ class WatchListController extends BaseController
             return $this->errorResponse(400, 'Movie is already in the watchlist.');
         }
 
-        DB::beginTransaction();
-
         try {
             $watchHistory = WatchHistory::where('profile_id', $profileId)
                 ->where('movie_id', $validated['movie_id'])
@@ -73,14 +71,10 @@ class WatchListController extends BaseController
                 'viewing_status' => $viewingStatus,
             ]);
 
-            DB::commit();
-
             return $this->dataResponse([
                 'watchlist' => $watchList->only(['watchlist_id', 'profile_id', 'movie_id', 'viewing_status']),
             ], "Movie added to watchlist successfully.");
         } catch (\Exception $e) {
-
-            DB::rollBack();
 
             Log::error("Error adding movie to watchlist: {$e->getMessage()}");
 
@@ -116,16 +110,10 @@ class WatchListController extends BaseController
             return $this->errorResponse(404, 'The profile has not liked this movie.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Update the watch history record
             $watchList->viewing_status = 'finished';
             $watchList->save();
-
-            // Commit the transaction
-            DB::commit();
 
             return $this->dataResponse([
                 'watchList' => $watchList->only([
@@ -133,8 +121,6 @@ class WatchListController extends BaseController
                 ]),
             ], "Movie hided successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 
@@ -188,8 +174,6 @@ class WatchListController extends BaseController
             return $this->errorResponse(400, 'Episode is already in the watchlist.');
         }
 
-        DB::beginTransaction();
-
         try {
             $watchHistory = WatchHistory::where('profile_id', $profileId)
                 ->where('episode_id', $validated['episode_id'])
@@ -203,14 +187,10 @@ class WatchListController extends BaseController
                 'viewing_status' => $viewingStatus,
             ]);
 
-            DB::commit();
-
             return $this->dataResponse([
                 'watchlist' => $watchList->only(['watchlist_id', 'profile_id', 'episode_id', 'viewing_status']),
             ], "Episode added to watchlist successfully.");
         } catch (\Exception $e) {
-
-            DB::rollBack();
 
             Log::error("Error adding episode to watchlist: {$e->getMessage()}");
 
@@ -251,16 +231,10 @@ class WatchListController extends BaseController
             return $this->errorResponse(404, 'The profile has not liked this episode.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Update the watch history record
             $watchList->viewing_status = 'finished';
             $watchList->save();
-
-            // Commit the transaction
-            DB::commit();
 
             return $this->dataResponse([
                 'watchList' => $watchList->only([
@@ -268,8 +242,6 @@ class WatchListController extends BaseController
                 ]),
             ], "Episode hided successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 

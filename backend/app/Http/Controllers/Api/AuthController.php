@@ -34,13 +34,9 @@ class AuthController extends BaseController
      */
     public function register(RegisterRequest $request)
     {
-        // Validate incoming request
-        $validated = $request->validated();
-
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
+            $validated = $request->validated();
+
             // Generate a referral code for the new user
             $sentReferralCode = strtoupper(Str::random(10));
             $hasDiscount = $request->filled('received_referral_code');
@@ -61,9 +57,6 @@ class AuthController extends BaseController
             $user->load('profiles');
             $profile = $user->profiles->first();
 
-            // Commit the transaction after successful user creation
-            DB::commit();
-
             // Generate JWT token for the user
             $token = JWTAuth::fromUser($user);
 
@@ -82,7 +75,6 @@ class AuthController extends BaseController
             ], "Registration successful");
         } catch (Exception $e) {
             // If anything goes wrong, roll back the transaction
-            DB::rollBack();
             Log::error($e);
             return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }

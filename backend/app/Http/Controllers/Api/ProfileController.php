@@ -63,9 +63,6 @@ class ProfileController extends BaseController
             return $this->errorResponse(400, 'A user cannot have more than 4 profiles.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Create the new profile record in the database
             $profile = Profile::create([
@@ -77,16 +74,11 @@ class ProfileController extends BaseController
                 'language' => $validated['language'],
             ]);
 
-            // Commit the transaction after successful user creation
-            DB::commit();
-
             // Return the response with subscription data
             return $this->dataResponse([
                 'profile' => $profile->only(['profile_id', 'user_id', 'name', 'photo_path', 'child_profile', 'date_of_birth', 'language']),
             ], "Profile created successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure
@@ -119,22 +111,15 @@ class ProfileController extends BaseController
 
         $validated = $validator->safe();
 
-        // Start database transaction
-        DB::beginTransaction();
         try {
             // Update the profile record in the database
             $profile->update($validated->toArray());
-
-            // Commit the transaction after successful update
-            DB::commit();
 
             // Return the response with subscription data
             return $this->dataResponse([
                 'profile' => $profile->only(['profile_id','user_id', 'name', 'photo_path', 'child_profile', 'date_of_birth', 'language']),
             ], "Profile updated successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure

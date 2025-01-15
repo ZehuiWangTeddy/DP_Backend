@@ -95,9 +95,13 @@ class SeriesController extends BaseController
 
     public function search(Request $request)
     {
-        $validated = $request->validate([
-            'query' => 'required|string|min:2'
-        ]);
+        try {
+            $validated = $request->validate([
+                'query' => 'required|string|min:2'
+            ]);
+        } catch(\Exception $e) {
+            return $this->errorResponse(400, $e->getMessage());
+        }
 
         $series = Series::where('title', 'LIKE', '%' . $validated['query'] . '%')->get();
         return $this->dataResponse($series, 'Search results retrieved successfully');
@@ -105,9 +109,14 @@ class SeriesController extends BaseController
 
     public function getByGenre(Request $request)
     {
-        $validated = $request->validate([
-            'genre' => 'required|string'
-        ]);
+        try {
+            $validated = $request->validate([
+                'genre' => 'required|string'
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, $e->getMessage());
+        }
+
 
         $series = Series::whereJsonContains('genre', $validated['genre'])->get();
         return $this->dataResponse($series, 'Series retrieved by genre successfully');
@@ -115,9 +124,14 @@ class SeriesController extends BaseController
 
     public function getByAgeRestriction(Request $request)
     {
-        $validated = $request->validate([
-            'age' => 'required|integer|min:0'
-        ]);
+        try {
+            $validated = $request->validate([
+                'age' => 'required|integer|min:0'
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, $e->getMessage());
+        }
+
 
         $series = Series::where('age_restriction', '<=', $validated['age'])->get();
         return $this->dataResponse($series, 'Series retrieved by age restriction successfully');
@@ -125,9 +139,13 @@ class SeriesController extends BaseController
 
     public function getByLanguage(Request $request)
     {
-        $validated = $request->validate([
-            'language' => 'required|string'
-        ]);
+        try {
+            $validated = $request->validate([
+                'language' => 'required|string'
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse(400, $e->getMessage());
+        }
 
         $series = Series::whereJsonContains('available_languages', $validated['language'])->get();
         return $this->dataResponse($series, 'Series retrieved by language successfully');

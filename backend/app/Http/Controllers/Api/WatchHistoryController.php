@@ -67,9 +67,6 @@ class WatchHistoryController extends BaseController
             return $this->errorResponse(404, 'Profile not found.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // watched time stamp finish cannot early than start
             $existingHistory = WatchHistory::where([
@@ -99,16 +96,11 @@ class WatchHistoryController extends BaseController
 
             $watchHistory->save();
 
-            // Commit the transaction
-            DB::commit();
-
             // Return success response
             return $this->dataResponse([
                 'watchHistory' => $watchHistory->only(['history_id', 'profile_id', 'movie_id', 'resume_to', 'times_watched', 'watched_time_stamp','viewing_status']),
             ], "Movie started watching successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 
@@ -146,17 +138,11 @@ class WatchHistoryController extends BaseController
             return $this->errorResponse(404, 'The profile has not watched this movie.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Update the watch history record
             $watchHistory->watched_time_stamp = $validated['watched_time_stamp'];
             $watchHistory->viewing_status = 'finished';
             $watchHistory->save();
-
-            // Commit the transaction
-            DB::commit();
 
             return $this->dataResponse([
                 'watchHistory' => $watchHistory->only([
@@ -165,8 +151,6 @@ class WatchHistoryController extends BaseController
                 ]),
             ], "Movie finished successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 
@@ -230,8 +214,6 @@ class WatchHistoryController extends BaseController
             return $this->errorResponse(404, 'Profile not found.');
         }
 
-        DB::beginTransaction();
-
         try {
             // Check if viewing history exists
             $existingHistory = WatchHistory::where([
@@ -262,13 +244,10 @@ class WatchHistoryController extends BaseController
 
             $watchHistory->save();
 
-            DB::commit();
-
             return $this->dataResponse([
                 'watchHistory' => $watchHistory->only(['history_id', 'profile_id', 'episode_id', 'resume_to', 'times_watched', 'watched_time_stamp', 'viewing_status']),
             ], "Episode started watching successfully.");
         } catch (\Exception $e) {
-            DB::rollBack();
 
             Log::error("Error in startEpisode: {$e->getMessage()}");
 
@@ -310,17 +289,11 @@ class WatchHistoryController extends BaseController
             return $this->errorResponse(404, 'The profile has not watched this episode.');
         }
 
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
             // Update the watch history record
             $watchHistory->watched_time_stamp = $validated['watched_time_stamp'];
             $watchHistory->viewing_status = 'finished';
             $watchHistory->save();
-
-            // Commit the transaction
-            DB::commit();
 
             return $this->dataResponse([
                 'watchHistory' => $watchHistory->only([
@@ -329,8 +302,6 @@ class WatchHistoryController extends BaseController
                 ]),
             ], "Episode finished successfully.");
         } catch (\Exception $e) {
-            // Rollback the transaction if an error occurs
-            DB::rollBack();
 
             Log::error($e);
 
