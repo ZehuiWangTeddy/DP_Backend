@@ -4,54 +4,190 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Preference;
+use App\Models\Profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 
-class PreferenceController extends BaseController 
+class PreferenceController extends BaseController
 {
-    public function index($id)
+    public function show($profileId)
     {
-        $preferences = Preference::where('profile_id', $id)->get();
-
-        return $this->dataResponse($preferences, 'Preferences retrieved successfully');
-    }
-
-    public function store(Request $request, $id)
-    {
-        $validatedData = $request->validate([
-            'content_type' => 'required|string|max:255',
-            'content_preference' => 'nullable|string|max:255',
-            'genre' => 'required|string|max:255',
-            'minimum_age' => 'required|integer|min:0',
-        ]);
-
-        $validatedData['profile_id'] = $id;
-
-        $preference = Preference::create($validatedData);
-
-        return $this->dataResponse($preference, 'Preference created successfully');
-    }
-
-    public function update(Request $request, $id)
-    {
-        $validatedData = $request->validate([
-            'preference_id' => 'required|integer',
-            'content_type' => 'required|string|max:255',
-            'content_preference' => 'nullable|string|max:255',
-            'genre' => 'required|string|max:255',
-            'minimum_age' => 'required|integer|min:0',
-        ]);
-
-        $preference = Preference::where('profile_id', $id)
-            ->where('preference_id', $validatedData['preference_id'])
-            ->first();
+        $preference = Preference::where('profile_id', $profileId)->first();
 
         if (!$preference) {
-            return $this->errorResponse('Preference not found', 404);
+            return $this->errorResponse(404, 'Preference not found');
         }
 
-        $preference->update($validatedData);
+        return $this->dataResponse($preference, 'Preferences retrieved successfully');
+    }
 
-        return $this->dataResponse($preference, 'Preference updated successfully');
+    public function store(Request $request, $profileId)
+    {
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'content_type' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::in([
+                    '18+', 'For Kids', 'Includes Violence', 'Includes Sex',
+                    'Family Friendly', 'Educational', 'Sci-Fi Themes', 'Fantasy Elements',
+                ]),
+            ],
+            'content_preference' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::in(['movies', 'series', 'both']),
+            ],
+            'genre' => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $allowedGenres = [
+                        'Action', 'Comedy', 'Drama', 'Horror', 'Thriller',
+                        'Fantasy', 'Science Fiction', 'Romance', 'Documentary',
+                        'Animation', 'Crime', 'Mystery', 'Adventure', 'Western', 'Biographical',
+                    ];
+                    foreach ($value as $genre) {
+                        if (!in_array($genre, $allowedGenres)) {
+                            return $fail("The $attribute contains an invalid genre: $genre.");
+                        }
+                    }
+                },
+            ],
+            'genre.*' => 'string|max:255',
+            'minimum_age' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
+
+        $validated = $validator->safe();
+
+        // Check if the profile exists
+        $profile = Profile::find($profileId);
+        if (!$profile) {
+            return $this->errorResponse(404, 'Profile not found.');
+        }
+
+        // Check if the profile already has a preference
+        $existingPreference = Preference::where('profile_id', $profileId)->exists();
+        if ($existingPreference) {
+            return $this->errorResponse(400, 'This profile already has a preference. Please update it instead.');
+        }
+
+        // Convert genre to JSON format
+        $validated['genre'] = json_encode($validated['genre']);
+
+        try {
+            // Create the preference record in the database
+            $preference = Preference::create([
+                'profile_id' => $profileId,
+                'content_type' => $validated['content_type'],
+                'content_preference' => $validated['content_preference'],
+                'genre' => $validated['genre'],
+                'minimum_age' => $validated['minimum_age'],
+            ]);
+
+            // Return success response
+            return $this->dataResponse([
+                'preference' => $preference->only(['preference_id', 'profile_id', 'content_type', 'content_preference', 'genre', 'minimum_age']),
+            ], "Preference created successfully.");
+        } catch (\Exception $e) {
+
+            Log::error($e);
+
+            // Return error response
+            return $this->errorResponse(500, 'Failed to add new preference. Please try again later.');
+        }
+    }
+
+    public function update(Request $request, $profileId)
+    {
+        // Find the existing preference based on profile_id
+        $preference = Preference::where('profile_id', $profileId)->first();
+        if (!$preference) {
+            return $this->errorResponse(404, 'Preference not found');
+        }
+
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'content_type' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::in([
+                    '18+', 'For Kids', 'Includes Violence', 'Includes Sex',
+                    'Family Friendly', 'Educational', 'Sci-Fi Themes', 'Fantasy Elements',
+                ]),
+            ],
+            'content_preference' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::in(['movies', 'series', 'both']),
+            ],
+            'genre' => [
+                'sometimes',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $allowedGenres = [
+                        'Action', 'Comedy', 'Drama', 'Horror', 'Thriller',
+                        'Fantasy', 'Science Fiction', 'Romance', 'Documentary',
+                        'Animation', 'Crime', 'Mystery', 'Adventure', 'Western', 'Biographical',
+                    ];
+                    foreach ($value as $genre) {
+                        if (!in_array($genre, $allowedGenres)) {
+                            return $fail("The $attribute contains an invalid genre: $genre.");
+                        }
+                    }
+                },
+            ],
+            'genre.*' => 'string|max:255',
+            'minimum_age' => 'sometimes|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse(400, $validator->errors()->first());
+        }
+
+        $validated = $validator->safe()->toArray();
+
+        // Convert 'genre' to JSON if it exists
+        if (isset($validated['genre'])) {
+            $validated['genre'] = json_encode($validated['genre']);
+        }
+
+        try {
+            // Update the preference record in the database
+            $preference->update($validated);
+
+            // Return the response with updated preference data
+            return $this->dataResponse([
+                'preference' => $preference->only(['preference_id', 'profile_id', 'content_type', 'content_preference', 'genre', 'minimum_age']),
+            ], "Preference updated successfully.");
+        } catch (\Exception $e) {
+
+            Log::error($e);
+            // Return error response
+            return $this->errorResponse(500, 'Failed to update preference. Please try again later.');
+        }
+    }
+
+    public function destroy($profileId)
+    {
+        // Find the existing preference based on profile_id
+        $preference = Preference::where('profile_id', $profileId)->first();
+        if (!$preference) {
+            return $this->errorResponse(404,'Preference not found');
+        }
+        $preference->delete();
+        return $this->messageResponse('Preference deleted successfully.', 200);
     }
 }

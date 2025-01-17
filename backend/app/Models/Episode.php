@@ -17,7 +17,7 @@ class Episode extends Model
      */
     public $timestamps = false;
 
-     /**
+    /**
      * The primary key associated with the table.
      *
      * @var string
@@ -41,5 +41,10 @@ class Episode extends Model
     public function season()
     {
         return $this->belongsTo(Season::class, 'season_id', 'season_id');
+    }
+
+    public function subtitles()
+    {
+        return $this->hasMany(Subtitle::class, 'episode_id', 'episode_id');
     }
 }

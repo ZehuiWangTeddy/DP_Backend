@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Models\Movie;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MovieController extends BaseController
 {
@@ -14,10 +16,10 @@ class MovieController extends BaseController
             'title' => $isUpdate ? 'sometimes|string|max:100' : 'required|string|max:100',
             'duration' => $isUpdate ? 'sometimes|regex:/^\d{2}:\d{2}:\d{2}$/' : 'required|regex:/^\d{2}:\d{2}:\d{2}$/',
             'release_date' => $isUpdate ? 'sometimes|date' : 'required|date',
-            'quality' => $isUpdate ? 'sometimes|array' : 'required|array',
+            'quality' => $isUpdate ? 'sometimes|array|in:SD,HD,UHD' : 'required|array|in:SD,HD,UHD',
             'age_restriction' => $isUpdate ? 'sometimes|integer|min:0' : 'required|integer|min:0',
-            'genre' => $isUpdate ? 'sometimes|array' : 'required|array',
-            'viewing_classification' => $isUpdate ? 'sometimes|string' : 'required|string',
+            'genre' => $isUpdate ? 'sometimes|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical' : 'required|array|in:Action,Comedy,Drama,Horror,Thriller,Fantasy,Science Fiction,Romance,Documentary,Animation,Crime,Mystery,Adventure,Western,Biographical',
+            'viewing_classification' => $isUpdate ? 'sometimes|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements' : 'required|string|in:18+,For Kids,Includes Violence,Includes Sex,Family Friendly,Educational,Sci-Fi Themes,Fantasy Elements',
             'available_languages' => $isUpdate ? 'sometimes|array' : 'required|array',
         ];
 
@@ -37,40 +39,61 @@ class MovieController extends BaseController
     public function index()
     {
         $movies = Movie::all();
-        return response()->json(['data' => $movies, 'message' => 'Movies retrieved successfully'], 200);
+        return $this->dataResponse($movies, 'Movies retrieved successfully');
     }
 
     public function store(Request $request)
     {
-        $validated = $this->validateMovie($request);
-        $validated = $this->encodeFields($validated);
+        try {
+            $validated = $this->validateMovie($request);
+            $validated = $this->encodeFields($validated);
 
-        $movie = Movie::create($validated);
-        return response()->json(['data' => $movie, 'message' => 'Movie created successfully'], 201);
+            $movie = Movie::create($validated);
+
+            return $this->dataResponse([
+                'data' => $movie,
+            ], "Movie created successfully");
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'Failed to create movie: ' . $e->getMessage());
+        }
     }
 
     public function show($id)
     {
-        $movie = Movie::findOrFail($id);
-        return response()->json(['data' => $movie, 'message' => 'Movie retrieved successfully'], 200);
+        try {
+            $movie = Movie::findOrFail($id);
+            return $this->dataResponse($movie, 'Movie retrieved successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(404, 'Movie not found');
+        }
     }
+
 
     public function update(Request $request, $id)
     {
-        $movie = Movie::findOrFail($id);
+        try {
+            $movie = Movie::find($id);
+            if (!$movie) {
+                return $this->errorResponse(404, 'Movie not found');
+            }
 
-        $validated = $this->validateMovie($request, true);
-        $validated = $this->encodeFields($validated);
+            $validated = $this->validateMovie($request, true);
+            $validated = $this->encodeFields($validated);
 
-        $movie->update($validated);
-        return response()->json(['data' => $movie, 'message' => 'Movie updated successfully'], 200);
+            $movie->update($validated);
+            return $this->dataResponse($movie, 'Movie updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse(500, 'Failed to update movie: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $movie = Movie::findOrFail($id);
+        $movie = Movie::find($id);
+        if (!$movie) {
+            return $this->errorResponse(404, 'Movie not found');
+        }
         $movie->delete();
-
-        return response()->json(['message' => 'Movie deleted successfully'], 200);
+        return $this->messageResponse('Movie deleted successfully', 200);
     }
 }

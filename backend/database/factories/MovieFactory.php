@@ -44,9 +44,9 @@ class MovieFactory extends Factory
                 ],
                 $this->faker->numberBetween(1, 3) // Select 1 to 3 genres
             )),
-            'viewing_classification' => json_encode([
-                ViewingClassificationHelper::determineViewingClassification($age)
-            ]), // Viewing classification based on age
+            'viewing_classification' => ViewingClassificationHelper::determineViewingClassification(
+                $this->faker->numberBetween(0, 18)
+            ), // Viewing classification based on age
             'available_languages' => json_encode($this->faker->randomElements(
                 ['English', 'Spanish', 'French', 'German', 'Italian', 'Chinese', 'Japanese'],
                 $this->faker->numberBetween(2, 4)

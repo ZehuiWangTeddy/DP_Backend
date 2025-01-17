@@ -19,7 +19,7 @@ return new class extends Migration
             $table->json('quality')->default(json_encode([])); // because have multiple quality
             $table->integer('age_restriction');
             $table->json('genre');
-            $table->json('viewing_classification'); //array list
+            $table->string('viewing_classification');
             $table->json('available_languages')->default(json_encode([]));
         });
     }

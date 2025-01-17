@@ -6,19 +6,18 @@ use App\Http\Controllers\BaseController;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Carbon\Carbon;
-use Exception;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB; // Add DB facade for transaction handling
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
-
-// Add DB facade for transaction handling
+use Exception;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends BaseController
 {
@@ -35,13 +34,9 @@ class AuthController extends BaseController
      */
     public function register(RegisterRequest $request)
     {
-        // Validate incoming request
-        $validated = $request->validated();
-
-        // Start database transaction
-        DB::beginTransaction();
-
         try {
+            $validated = $request->validated();
+
             // Generate a referral code for the new user
             $sentReferralCode = strtoupper(Str::random(10));
             $hasDiscount = $request->filled('received_referral_code');
@@ -62,9 +57,6 @@ class AuthController extends BaseController
             $user->load('profiles');
             $profile = $user->profiles->first();
 
-            // Commit the transaction after successful user creation
-            DB::commit();
-
             // Generate JWT token for the user
             $token = JWTAuth::fromUser($user);
 
@@ -83,7 +75,6 @@ class AuthController extends BaseController
             ], "Registration successful");
         } catch (Exception $e) {
             // If anything goes wrong, roll back the transaction
-            DB::rollBack();
             Log::error($e);
             return $this->errorResponse(500, 'Registration failed. Please try again later.');
         }
@@ -158,7 +149,7 @@ class AuthController extends BaseController
         }
 
         return $this->dataResponse([
-            'user' => Auth::user(),
+            'user' => User::with(['profiles', 'subscriptions'])->where('user_id', $user->user_id)->first(),
             'access_token' => [
                 'token' => $token,
                 'token_type' => 'bearer',
@@ -224,7 +215,7 @@ class AuthController extends BaseController
         $validator = Validator::make($request->all(), [
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -254,7 +245,7 @@ class AuthController extends BaseController
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'password' => 'required|confirmed|min:8',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class SubscriptionController extends BaseController
 {
@@ -24,7 +24,7 @@ class SubscriptionController extends BaseController
             'user_id' => 'required|exists:users',
             'price' => 'required|in:7.99,10.99,13.99',
             'name' => 'required|in:SD,HD,UHD',
-            'status' => 'nullable|in:paid,expired',
+            'status' => 'required|in:paid,expired',
             'start_date' => 'required|date|before_or_equal:end_date',
             'end_date' => 'required|date|after:start_date',
             'payment_method' => 'required|string|in:PayPal,Visa,MasterCard,Apple Pay,Google Pay,iDEAL',
@@ -35,9 +35,6 @@ class SubscriptionController extends BaseController
         }
 
         $validated = $validator->safe();
-
-        // Start database transaction
-        DB::beginTransaction();
 
         try {
             // Create the new subscription record in the database
@@ -51,16 +48,11 @@ class SubscriptionController extends BaseController
                 'payment_method' => $validated['payment_method'],
             ]);
 
-            // Commit the transaction after successful user creation
-            DB::commit();
-
             // Return the response with subscription data
             return $this->dataResponse([
                 'subscription' => $subscription->only(['subscription_id','user_id', 'name', 'start_date', 'end_date', 'status', 'payment_method']),
             ], "Subscription created successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure
@@ -72,7 +64,7 @@ class SubscriptionController extends BaseController
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
-            return $this->errorResponse('Subscription not found', 404);
+            return $this->errorResponse(404, 'Subscription not found');
         }
         return $this->dataResponse($subscription, "Subscription payment details retrieved successfully");
     }
@@ -81,7 +73,7 @@ class SubscriptionController extends BaseController
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
-            return $this->errorResponse('Subscription not found', 404);
+            return $this->errorResponse(404, 'Subscription not found');
         }
 
         $validator = Validator::make($request->all(), [
@@ -96,22 +88,15 @@ class SubscriptionController extends BaseController
 
         $validated = $validator->safe();
 
-        // Start database transaction
-        DB::beginTransaction();
         try {
             // Update the subscription record in the database
             $subscription->update($validated->toArray());
-
-            // Commit the transaction after successful update
-            DB::commit();
 
             // Return the response with subscription data
             return $this->dataResponse([
                 'subscription' => $subscription->only(['subscription_id','user_id', 'name', 'start_date', 'end_date', 'status', 'payment_method']),
             ], "Subscription updated successfully.");
         } catch (\Exception $e) {
-            // If anything goes wrong, roll back the transaction
-            DB::rollBack();
 
             Log::error($e);
             // Return error response in case of failure
@@ -123,7 +108,7 @@ class SubscriptionController extends BaseController
     {
         $subscription = Subscription::find($id);
         if (!$subscription) {
-            return $this->errorResponse('Subscription not found', 404);
+            return $this->errorResponse(404, 'Subscription not found');
         }
         $subscription->delete();
         return $this->messageResponse('Subscription deleted successfully.', 200);

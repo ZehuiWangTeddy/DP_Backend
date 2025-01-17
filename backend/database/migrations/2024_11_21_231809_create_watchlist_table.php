@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('watchlists', function (Blueprint $table) {
             $table->id('watchlist_id'); // Primary Key
-            
+
             // Foreign key to profiles
             $table->unsignedBigInteger('profile_id')->nullable();
             $table->foreign('profile_id')->references('profile_id')->on('profiles')->onDelete('set null');
@@ -28,9 +28,6 @@ return new class extends Migration
 
             // Enum for viewing status
             $table->enum('viewing_status', ['to_watch', 'paused', 'finished'])->default('to_watch');
-
-            // Add timestamps
-            $table->timestamps();
         });
     }
 
