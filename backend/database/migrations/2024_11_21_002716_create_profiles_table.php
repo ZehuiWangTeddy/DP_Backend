@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name', length: 100);
             $table->string('photo_path', length: 255)->nullable();
             $table->boolean('child_profile')->default(false);
-            $table->date('date_of_birth');
+            $table->date('date_of_birth')->nullable();
             $table->string('language', length: 20);
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profile');
+        Schema::dropIfExists('profiles');
     }
 };

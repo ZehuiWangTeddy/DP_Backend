@@ -14,8 +14,8 @@
    ```
 
 ## **Setting Up the `.env` File**
-1. Create a `.env` file in the `backend` directory.
-2. Add the following content:
+1. Based on `.env.example` content to create a `.env` file in the `backend` directory
+2. Set `database` and `session` part like the following content:
    ```env
    DB_CONNECTION=pgsql
    DB_HOST=127.0.0.1
@@ -23,6 +23,12 @@
    DB_DATABASE=netfilex
    DB_USERNAME=laravel
    DB_PASSWORD=laravel
+   
+   SESSION_DRIVER=file
+   SESSION_LIFETIME=120
+   SESSION_ENCRYPT=false
+   SESSION_PATH=/
+   SESSION_DOMAIN=null
    ```
 
 ## **Installing Dependencies**
@@ -53,7 +59,7 @@
    ```
 2. Access the application at `http://localhost:8000`.
 
-## **Testing**
+## **Add Mock Data**
 1. Populate the database with seed data:
    ```bash
    php artisan db:seed
@@ -63,6 +69,15 @@
    php artisan config:clear
    php artisan cache:clear
    ```
+## **Set API key and secret**
+1. Generate API key in .env file
+    ```bash 
+    php artisan key:generate
+    ```
+2. Generate API secret in .env file
+    ```bash
+    php artisan jwt:secret
+    ```
 
 ## **Notes**
 - Ensure PostgreSQL is running locally or on a configured server.

@@ -9,14 +9,14 @@ class Series extends Model
 {
     use HasFactory;
 
-            /**
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
      */
     public $timestamps = false;
 
-         /**
+    /**
      * The primary key associated with the table.
      *
      * @var string
@@ -36,6 +36,6 @@ class Series extends Model
      */
     public function seasons()
     {
-        return $this->hasMany(Season::class, 'series_id', 'series_id');
+        return $this->hasMany(Season::class, 'series_id');
     }
 }
